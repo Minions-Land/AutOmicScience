@@ -5,3 +5,5 @@ export * from './CoordinatorTeam.js';
 export * from './AnnotationPipeline.js';
 export * from './MixtureOfAgents.js';
 export * from './AgentAsTool.js';
+export * from './TeamPlugin.js';
+export * from './PluginRegistry.js';

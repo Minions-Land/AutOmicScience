@@ -1,4 +1,13 @@
-export type { Channel } from './Channel.js';
-export type { GatewayMessage } from './GatewayMessage.js';
+export type { Channel, ChannelType, ChannelConfig } from './Channel.js';
+export { ALL_CHANNELS } from './Channel.js';
+export type { GatewayMessage, GatewayReply } from './GatewayMessage.js';
 export type { Gateway } from './Gateway.js';
 export { StubGateway, WebhookGateway } from './Gateway.js';
+export type { ConversationRoute } from './Route.js';
+export { routeKey, stableShortId, isDirect } from './Route.js';
+export { RouteRegistry } from './RouteRegistry.js';
+export type { RouteEntry } from './RouteRegistry.js';
+export { GatewayConfigStore, channelConfigured } from './GatewayConfig.js';
+export { GatewayChannelManager } from './GatewayChannelManager.js';
+export type { ChannelAdapter, ChannelBridge, ChannelState, ChannelStatus } from './ChannelAdapter.js';
+export * from './channels/index.js';

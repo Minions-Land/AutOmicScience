@@ -1,3 +1,10 @@
 export type { Store } from './Store.js';
-export type { StoreEntry } from './StoreEntry.js';
+export type { StoreEntry, StoreVersion } from './StoreEntry.js';
 export { LocalStore } from './LocalStore.js';
+export { RemoteStore } from './RemoteStore.js';
+export { StoreClient } from './StoreClient.js';
+export { StoreAuth } from './StoreAuth.js';
+export { PackageInstaller } from './PackageInstaller.js';
+export type { PackageType } from './PackageInstaller.js';
+export { PackagePublisher } from './PackagePublisher.js';
+export type { PublishablePackage } from './PackagePublisher.js';

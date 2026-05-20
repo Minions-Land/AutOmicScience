@@ -1,4 +1,4 @@
-import type { AgentEvent, ChatOptions, Message } from '../types.js';
+import type { AgentEvent, ChatOptions, Message, TextContent, ImageContent } from '../types.js';
 import { ToolSet } from '../toolset/ToolSet.js';
 import { InMemoryMemory } from '../memory/InMemoryMemory.js';
 import type { Memory } from '../memory/Memory.js';
@@ -9,6 +9,54 @@ import type { McpPlugin } from '../mcp/McpPlugin.js';
 import type { AgentOptions } from './AgentOptions.js';
 import { logger } from '../utils/logger.js';
 import { uid } from '../utils/misc.js';
+import type { Tool } from '../toolset/Tool.js';
+import { z } from '../toolset/Tool.js';
+import type { ExecutionContext } from '../types.js';
+
+// ── Token counting helpers ──────────────────────────────────────────────────
+
+function estimateTokens(msg: Message): number {
+  const content = msg.content;
+  if (typeof content === 'string') return Math.ceil(content.length / 4);
+  // multimodal: text parts only (images counted as ~85 tokens each)
+  let total = 0;
+  for (const part of content as (TextContent | ImageContent)[]) {
+    if (part.type === 'text') total += Math.ceil(part.text.length / 4);
+    else total += 85; // rough vision token estimate
+  }
+  return total;
+}
+
+function totalTokens(messages: Message[]): number {
+  return messages.reduce((sum, m) => sum + estimateTokens(m), 0);
+}
+
+// ── Think suffix parsing ────────────────────────────────────────────────────
+
+import { parseModelString } from '../provider/Provider.js';
+export { parseModelString };
+
+// ── smartFunc factory ───────────────────────────────────────────────────────
+
+export function smartFunc<T>(
+  description: string,
+  fn: (input: string, context: ExecutionContext) => Promise<T>,
+): Tool {
+  return {
+    name: description.toLowerCase().replace(/\s+/g, '_').slice(0, 64),
+    description,
+    parameters: z.object({
+      input: z.string().describe('Natural language input for the function'),
+    }),
+    execute: async (args: Record<string, unknown>, context: ExecutionContext) => {
+      const input = String(args['input'] ?? '');
+      const result = await fn(input, context);
+      return { content: typeof result === 'string' ? result : JSON.stringify(result) };
+    },
+  };
+}
+
+// ── Agent ───────────────────────────────────────────────────────────────────
 
 export class Agent {
   public readonly name: string;
@@ -22,7 +70,18 @@ export class Agent {
   private temperature?: number;
   private maxTokens?: number;
   private maxIterations: number;
+  private maxRetries: number;
+  private maxHistoryTokens: number;
+  private responseFormat?: AgentOptions['responseFormat'];
   private mcpReady = false;
+
+  // Hooks
+  private onToolCall?: (name: string, args: unknown) => void | Promise<void>;
+  private onToolResult?: (name: string, result: unknown) => void | Promise<void>;
+  private onMessage?: (msg: Message) => void | Promise<void>;
+  private onBeforeRun?: (input: string | Message[]) => void | Promise<void>;
+  private onAfterRun?: (result: string) => void | Promise<void>;
+  private onError?: (error: Error) => void | Promise<void>;
 
   constructor(opts: AgentOptions) {
     this.name = opts.name ?? 'agent';
@@ -37,6 +96,52 @@ export class Agent {
     this.temperature = opts.temperature;
     this.maxTokens = opts.maxTokens;
     this.maxIterations = opts.maxIterations ?? 8;
+    this.maxRetries = opts.maxRetries ?? 2;
+    this.maxHistoryTokens = opts.maxHistoryTokens ?? 100_000;
+    this.responseFormat = opts.responseFormat;
+    this.onToolCall = opts.onToolCall;
+    this.onToolResult = opts.onToolResult;
+    this.onMessage = opts.onMessage;
+    this.onBeforeRun = opts.onBeforeRun;
+    this.onAfterRun = opts.onAfterRun;
+    this.onError = opts.onError;
+  }
+
+  /** Create a copy of this agent with optional overrides. */
+  clone(overrides?: Partial<AgentOptions>): Agent {
+    return new Agent({
+      name: this.name,
+      model: [...this.models],
+      provider: this.provider,
+      toolset: this.toolset,
+      skills: [...this.skills],
+      mcpPlugins: [...this.mcpPlugins],
+      memory: new InMemoryMemory(),
+      systemPrompt: this.baseSystemPrompt,
+      temperature: this.temperature,
+      maxTokens: this.maxTokens,
+      maxIterations: this.maxIterations,
+      maxRetries: this.maxRetries,
+      maxHistoryTokens: this.maxHistoryTokens,
+      responseFormat: this.responseFormat,
+      onToolCall: this.onToolCall,
+      onToolResult: this.onToolResult,
+      onMessage: this.onMessage,
+      onBeforeRun: this.onBeforeRun,
+      onAfterRun: this.onAfterRun,
+      onError: this.onError,
+      ...overrides,
+    });
+  }
+
+  /** Get the primary model (with +think suffix stripped). */
+  get model(): string {
+    return parseModelString(this.models[0]).base;
+  }
+
+  /** Check if this agent uses extended thinking. */
+  get usesThinking(): boolean {
+    return parseModelString(this.models[0]).extendedThinking;
   }
 
   /** Connect MCP plugins and merge their tools into this agent's toolset. */
@@ -77,16 +182,54 @@ export class Agent {
   }
 
   private resolveProvider(model: string): LLMProvider {
-    return this.provider ?? providerForModel(model);
+    const { base } = parseModelString(model);
+    return this.provider ?? providerForModel(base);
+  }
+
+  /** Auto-truncate history if over token budget using simple tail-truncation. */
+  private async maybeCompressHistory(): Promise<void> {
+    const recent = await this.memory.recent();
+    const used = totalTokens(recent);
+    if (used <= this.maxHistoryTokens) return;
+
+    // Drop oldest non-system messages until under budget
+    logger.warn(
+      `History token estimate ${used} exceeds ${this.maxHistoryTokens}; trimming oldest messages.`,
+    );
+    // We can't mutate memory directly — clear and re-append trimmed set
+    const systemMessages = recent.filter((m) => m.role === 'system');
+    const nonSystem = recent.filter((m) => m.role !== 'system');
+
+    let budget = this.maxHistoryTokens - totalTokens(systemMessages);
+    const kept: Message[] = [];
+    // Walk from newest to oldest
+    for (let i = nonSystem.length - 1; i >= 0; i--) {
+      const t = estimateTokens(nonSystem[i]);
+      if (budget - t < 0) break;
+      budget -= t;
+      kept.unshift(nonSystem[i]);
+    }
+
+    // Rebuild memory with trimmed history
+    if ('clear' in this.memory && typeof (this.memory as unknown as { clear: () => Promise<void> }).clear === 'function') {
+      await (this.memory as unknown as { clear: () => Promise<void> }).clear();
+      for (const m of [...systemMessages, ...kept]) {
+        await this.memory.append(m);
+      }
+    }
   }
 
   /** Run the agent on input. Yields a stream of AgentEvents. */
   async *run(input: string | Message[]): AsyncGenerator<AgentEvent> {
     await this.ready();
+    if (this.onBeforeRun) await this.onBeforeRun(input);
 
     const userMessages: Message[] =
       typeof input === 'string' ? [{ role: 'user', content: input }] : [...input];
-    for (const m of userMessages) await this.memory.append(m);
+    for (const m of userMessages) {
+      await this.memory.append(m);
+      if (this.onMessage) await this.onMessage(m);
+    }
 
     const tools = this.toolset.toOpenAITools();
     const baseChatOpts: Omit<ChatOptions, 'model'> = {
@@ -94,11 +237,15 @@ export class Agent {
       temperature: this.temperature,
       maxTokens: this.maxTokens,
       stream: true,
+      responseFormat: this.responseFormat,
     };
 
     let finalText = '';
 
     for (let iter = 0; iter < this.maxIterations; iter++) {
+      // Auto-truncate if history is too long
+      await this.maybeCompressHistory();
+
       const recent = await this.memory.recent();
       const messages: Message[] = [
         { role: 'system', content: this.buildSystemPrompt() },
@@ -120,31 +267,49 @@ export class Agent {
         tool_calls: toolCalls.length > 0 ? toolCalls : undefined,
       };
       await this.memory.append(assistantMsg);
+      if (this.onMessage) await this.onMessage(assistantMsg);
 
       if (toolCalls.length === 0) {
         finalText = assistantText;
         break;
       }
 
-      // Execute tools.
-      for (const call of toolCalls) {
-        yield { type: 'tool_call', data: call };
-        const tr = await this.toolset.execute(call.name, call.arguments, {
-          agentName: this.name,
-          metadata: { tool_call_id: call.id },
-        });
-        const fixed = { ...tr, tool_call_id: call.id };
+      // Execute tools in parallel (feature 4)
+      yield { type: 'tool_call', data: toolCalls };
+
+      const toolResults = await Promise.all(
+        toolCalls.map(async (call) => {
+          // Fire onToolCall hook
+          if (this.onToolCall) await this.onToolCall(call.name, call.arguments);
+
+          const tr = await this.toolset.execute(call.name, call.arguments, {
+            agentName: this.name,
+            metadata: { tool_call_id: call.id },
+          });
+          const fixed = { ...tr, tool_call_id: call.id };
+
+          // Fire onToolResult hook
+          if (this.onToolResult) await this.onToolResult(call.name, fixed);
+
+          return { call, fixed };
+        }),
+      );
+
+      for (const { call, fixed } of toolResults) {
         yield { type: 'tool_result', data: fixed };
-        await this.memory.append({
+        const toolMsg: Message = {
           role: 'tool',
           tool_call_id: call.id,
           name: call.name,
           content: fixed.content,
-        });
+        };
+        await this.memory.append(toolMsg);
+        if (this.onMessage) await this.onMessage(toolMsg);
       }
     }
 
     yield { type: 'done', data: finalText };
+    if (this.onAfterRun) await this.onAfterRun(finalText);
   }
 
   private async callWithFallback(
@@ -153,25 +318,36 @@ export class Agent {
   ): Promise<{ textChunks: string[]; toolCalls: { id: string; name: string; arguments: Record<string, unknown> }[] }> {
     let lastErr: unknown;
     for (const model of this.models) {
-      try {
-        const provider = this.resolveProvider(model);
-        const opts: ChatOptions = { ...base, model };
-        const textChunks: string[] = [];
-        const toolCalls: { id: string; name: string; arguments: Record<string, unknown> }[] = [];
-        for await (const ev of provider.chat(messages, opts)) {
-          if (ev.type === 'text' && ev.text) textChunks.push(ev.text);
-          else if (ev.type === 'tool_call' && ev.toolCall) {
-            toolCalls.push({
-              id: ev.toolCall.id || uid('call'),
-              name: ev.toolCall.name,
-              arguments: ev.toolCall.arguments,
-            });
+      // Retry with exponential backoff (feature 6)
+      for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+        try {
+          const provider = this.resolveProvider(model);
+          const opts: ChatOptions = { ...base, model };
+          const textChunks: string[] = [];
+          const toolCalls: { id: string; name: string; arguments: Record<string, unknown> }[] = [];
+          for await (const ev of provider.chat(messages, opts)) {
+            if (ev.type === 'text' && ev.text) textChunks.push(ev.text);
+            else if (ev.type === 'tool_call' && ev.toolCall) {
+              toolCalls.push({
+                id: ev.toolCall.id || uid('call'),
+                name: ev.toolCall.name,
+                arguments: ev.toolCall.arguments,
+              });
+            }
+          }
+          return { textChunks, toolCalls };
+        } catch (err) {
+          lastErr = err;
+          if (attempt < this.maxRetries) {
+            const delay = Math.pow(2, attempt) * 500; // 500ms, 1000ms, 2000ms
+            logger.warn(
+              `Model '${model}' attempt ${attempt + 1} failed: ${(err as Error).message}. Retrying in ${delay}ms.`,
+            );
+            await new Promise((res) => setTimeout(res, delay));
+          } else {
+            logger.warn(`Model '${model}' failed after ${this.maxRetries + 1} attempts. Trying next model.`);
           }
         }
-        return { textChunks, toolCalls };
-      } catch (err) {
-        logger.warn(`Model '${model}' failed: ${(err as Error).message}. Trying fallback.`);
-        lastErr = err;
       }
     }
     throw lastErr ?? new Error('All models failed');

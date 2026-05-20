@@ -1,97 +1,104 @@
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import { spawn } from 'node:child_process';
-import { z } from 'zod';
-import { defineTool } from './Tool.js';
+/**
+ * BuiltinToolSets — Factory functions for all built-in toolsets.
+ * Each function returns a configured ToolSet ready for agent use.
+ */
+
+// Re-export the original simple toolsets (kept for backward compatibility)
+export { shellToolSet } from './ShellTools.js';
+export { codeToolSet } from './CodeTools.js';
+export { fileToolSet } from './FileTools.js';
+export { pythonToolSet } from './PythonTools.js';
+export { notebookToolSet } from './NotebookTools.js';
+export { webToolSet } from './WebTools.js';
+export { databaseToolSet } from './DatabaseTools.js';
+export { taskToolSet } from './TaskTools.js';
+export { fileTransferToolSet } from './FileTransferTools.js';
+export { knowledgeToolSet } from './KnowledgeTools.js';
+export { scfmToolSet } from './ScfmTools.js';
+export { rToolSet } from './RTools.js';
+export { juliaToolSet } from './JuliaTools.js';
+
+// Re-export domain-specific toolsets
+export { bioDataToolSet } from './BioDataTools.js';
+export { syntheticDataToolSet } from './SyntheticDataTools.js';
+export { benchmarkToolSet } from './BenchmarkTools.js';
+export { annotationStageToolSet } from './AnnotationStageTools.js';
+
 import { ToolSet } from './ToolSet.js';
+import { shellToolSet } from './ShellTools.js';
+import { codeToolSet } from './CodeTools.js';
+import { fileToolSet } from './FileTools.js';
+import { pythonToolSet } from './PythonTools.js';
+import { notebookToolSet } from './NotebookTools.js';
+import { webToolSet } from './WebTools.js';
+import { databaseToolSet } from './DatabaseTools.js';
+import { taskToolSet } from './TaskTools.js';
+import { fileTransferToolSet } from './FileTransferTools.js';
+import { knowledgeToolSet } from './KnowledgeTools.js';
+import { scfmToolSet } from './ScfmTools.js';
+import { rToolSet } from './RTools.js';
+import { juliaToolSet } from './JuliaTools.js';
 
-export function fileToolSet(rootDir: string = process.cwd()): ToolSet {
-  const resolve = (p: string) => path.resolve(rootDir, p);
-
-  return new ToolSet('file', [
-    defineTool<{ path: string }, string>({
-      name: 'read_file',
-      description: 'Read a UTF-8 text file from the workspace.',
-      parameters: z.object({ path: z.string() }),
-      execute: async ({ path: p }) => fs.readFile(resolve(p), 'utf8'),
-    }),
-    defineTool<{ path: string; content: string }, { ok: boolean; path: string }>({
-      name: 'write_file',
-      description: 'Write a UTF-8 text file to the workspace (overwrites).',
-      parameters: z.object({ path: z.string(), content: z.string() }),
-      execute: async ({ path: p, content }) => {
-        const full = resolve(p);
-        await fs.mkdir(path.dirname(full), { recursive: true });
-        await fs.writeFile(full, content, 'utf8');
-        return { ok: true, path: full };
-      },
-    }),
-    defineTool<{ path: string }, string[]>({
-      name: 'list_dir',
-      description: 'List entries of a directory.',
-      parameters: z.object({ path: z.string().default('.') }),
-      execute: async ({ path: p }) => fs.readdir(resolve(p)),
-    }),
-  ]);
+export interface DefaultToolSetOptions {
+  /** Root directory for file/code operations. */
+  rootDir?: string;
+  /** Agent name (used for file transfer). */
+  agentName?: string;
+  /** Which toolset categories to include. Default: all. */
+  include?: (
+    | 'shell'
+    | 'code'
+    | 'file'
+    | 'python'
+    | 'notebook'
+    | 'web'
+    | 'database'
+    | 'task'
+    | 'file_transfer'
+    | 'knowledge'
+    | 'scfm'
+    | 'r'
+    | 'julia'
+  )[];
+  /** Toolset categories to exclude. */
+  exclude?: string[];
 }
 
-export function shellToolSet(): ToolSet {
-  return new ToolSet('shell', [
-    defineTool<
-      { command: string; cwd?: string; timeoutMs: number },
-      { stdout: string; stderr: string; exitCode: number }
-    >({
-      name: 'shell_exec',
-      description: 'Run a shell command and return stdout/stderr/exitCode.',
-      parameters: z.object({
-        command: z.string(),
-        cwd: z.string().optional(),
-        timeoutMs: z.number().int().positive().max(120_000).default(30_000),
-      }),
-      execute: async ({ command, cwd, timeoutMs }) =>
-        new Promise((resolve) => {
-          const child = spawn(command, { shell: true, cwd });
-          let stdout = '';
-          let stderr = '';
-          const timer = setTimeout(() => child.kill('SIGKILL'), timeoutMs);
-          child.stdout.on('data', (b) => (stdout += b.toString()));
-          child.stderr.on('data', (b) => (stderr += b.toString()));
-          child.on('close', (code) => {
-            clearTimeout(timer);
-            resolve({ stdout, stderr, exitCode: code ?? -1 });
-          });
-        }),
-    }),
-  ]);
-}
+/**
+ * Create the default set of all built-in toolsets merged into one.
+ * Use `include` or `exclude` to control which categories are active.
+ */
+export function createDefaultToolSet(opts: DefaultToolSetOptions = {}): ToolSet {
+  const rootDir = opts.rootDir ?? process.cwd();
+  const agentName = opts.agentName ?? 'agent';
 
-export function webToolSet(): ToolSet {
-  return new ToolSet('web', [
-    defineTool<{ url: string }, { status: number; body: string }>({
-      name: 'http_get',
-      description: 'HTTP GET a URL and return text content.',
-      parameters: z.object({ url: z.string().url() }),
-      execute: async ({ url }) => {
-        const res = await fetch(url);
-        return { status: res.status, body: await res.text() };
-      },
-    }),
-  ]);
-}
+  const all: Record<string, () => ToolSet> = {
+    shell: () => shellToolSet({ cwd: rootDir }),
+    code: () => codeToolSet({ rootDir }),
+    file: () => fileToolSet({ rootDir }),
+    python: () => pythonToolSet({ cwd: rootDir }),
+    notebook: () => notebookToolSet({ notebookDir: rootDir }),
+    web: () => webToolSet(),
+    database: () => databaseToolSet(),
+    task: () => taskToolSet(),
+    file_transfer: () => fileTransferToolSet({ agentName }),
+    knowledge: () => knowledgeToolSet({ rootDir }),
+    scfm: () => scfmToolSet(),
+    r: () => rToolSet({ cwd: rootDir }),
+    julia: () => juliaToolSet({ cwd: rootDir }),
+  };
 
-export function codeToolSet(): ToolSet {
-  return new ToolSet('code', [
-    defineTool<{ code: string }, { result: unknown }>({
-      name: 'eval_js',
-      description: 'Evaluate a JavaScript expression in a sandboxed function (NOT secure).',
-      parameters: z.object({ code: z.string() }),
-      execute: async ({ code }) => {
-        // Minimal stub. Replace with a real sandbox (vm2, isolated-vm) for production.
-        // eslint-disable-next-line no-new-func
-        const fn = new Function(`return (async () => { return (${code}); })();`);
-        const result = await (fn() as Promise<unknown>);
-        return { result };
-      },
-    }),
-  ]);
+  const include = opts.include ?? (Object.keys(all) as (keyof typeof all)[]);
+  const exclude = new Set(opts.exclude ?? []);
+
+  const merged = new ToolSet('default');
+  for (const key of include) {
+    if (exclude.has(key)) continue;
+    const factory = all[key];
+    if (factory) {
+      merged.merge(factory());
+    }
+  }
+
+  return merged;
 }

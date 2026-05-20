@@ -14,10 +14,12 @@ export interface LLMProvider {
   chat(messages: Message[], options: ChatOptions): AsyncGenerator<ProviderStreamChunk>;
 }
 
-/** Strip the `+think` suffix; return base model and an extendedThinking flag. */
-export function parseModelString(model: string): { base: string; extendedThinking: boolean } {
-  if (model.endsWith('+think')) {
-    return { base: model.slice(0, -'+think'.length), extendedThinking: true };
+/** Strip the `+think[:level]` suffix; return base model and thinking config. */
+export function parseModelString(model: string): { base: string; extendedThinking: boolean; thinkingLevel?: 'low' | 'medium' | 'high' } {
+  const thinkMatch = model.match(/^(.+)\+think(?::(\w+))?$/);
+  if (thinkMatch) {
+    const level = thinkMatch[2] as 'low' | 'medium' | 'high' | undefined;
+    return { base: thinkMatch[1], extendedThinking: true, thinkingLevel: level };
   }
   return { base: model, extendedThinking: false };
 }

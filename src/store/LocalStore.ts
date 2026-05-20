@@ -3,17 +3,16 @@ import path from 'node:path';
 import os from 'node:os';
 import type { Store } from './Store.js';
 import type { StoreEntry } from './StoreEntry.js';
+import { PackageInstaller } from './PackageInstaller.js';
+import type { PackageType } from './PackageInstaller.js';
 
 const STORE_DIR = path.join(os.homedir(), '.medrix', 'store');
 const REGISTRY_FILE = path.join(STORE_DIR, 'registry.json');
 
-/**
- * Local filesystem-backed store implementation.
- * Uses ~/.medrix/store/registry.json as a JSON registry.
- */
 export class LocalStore implements Store {
   private entries: StoreEntry[] = [];
   private loaded = false;
+  private readonly installer = new PackageInstaller();
 
   private async ensureLoaded(): Promise<void> {
     if (this.loaded) return;
@@ -32,44 +31,58 @@ export class LocalStore implements Store {
     await fs.writeFile(REGISTRY_FILE, JSON.stringify(this.entries, null, 2));
   }
 
-  /** Search entries by query string (case-insensitive substring match). */
-  async search(query: string): Promise<StoreEntry[]> {
+  async search(query: string, opts?: { type?: string; limit?: number }): Promise<StoreEntry[]> {
     await this.ensureLoaded();
     const q = query.toLowerCase();
-    return this.entries.filter(
+    let results = this.entries.filter(
       (e) =>
         e.name.toLowerCase().includes(q) ||
         e.description.toLowerCase().includes(q) ||
-        e.id.toLowerCase().includes(q),
+        e.id.toLowerCase().includes(q) ||
+        (e.tags ?? []).some((t) => t.toLowerCase().includes(q)),
     );
+    if (opts?.type) results = results.filter((e) => e.category === opts.type);
+    if (opts?.limit) results = results.slice(0, opts.limit);
+    return results;
   }
 
-  /** Install an entry by id (no-op stub — logs the install). */
-  async install(id: string): Promise<void> {
+  async install(id: string, version?: string): Promise<string[]> {
     await this.ensureLoaded();
     const entry = this.entries.find((e) => e.id === id);
-    if (!entry) {
-      throw new Error(`Store entry not found: ${id}`);
-    }
-    // Stub: in a real implementation, download and install the package
+    if (!entry) throw new Error(`Store entry not found: ${id}`);
+    const content = (entry as any).content ?? `# ${entry.name}\n\n${entry.description}`;
+    const files = entry.files;
+    return this.installer.install(entry.category as PackageType, entry.name, content, files);
   }
 
-  /** Publish a new entry to the local store. */
-  async publish(entry: StoreEntry): Promise<void> {
+  async uninstall(id: string): Promise<string[]> {
+    await this.ensureLoaded();
+    const entry = this.entries.find((e) => e.id === id);
+    if (!entry) throw new Error(`Store entry not found: ${id}`);
+    return this.installer.uninstall(entry.category as PackageType, entry.name);
+  }
+
+  async publish(entry: StoreEntry & { content: string }): Promise<void> {
     await this.ensureLoaded();
     const idx = this.entries.findIndex((e) => e.id === entry.id);
+    const stored = { ...entry, updatedAt: new Date().toISOString() };
     if (idx >= 0) {
-      this.entries[idx] = entry;
+      this.entries[idx] = stored;
     } else {
-      this.entries.push(entry);
+      (stored as any).createdAt = new Date().toISOString();
+      this.entries.push(stored);
     }
     await this.persist();
   }
 
-  /** List all entries, optionally filtered by category. */
   async list(category?: StoreEntry['category']): Promise<StoreEntry[]> {
     await this.ensureLoaded();
     if (!category) return [...this.entries];
     return this.entries.filter((e) => e.category === category);
+  }
+
+  async getPackage(id: string): Promise<StoreEntry | undefined> {
+    await this.ensureLoaded();
+    return this.entries.find((e) => e.id === id);
   }
 }

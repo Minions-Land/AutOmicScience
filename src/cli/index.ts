@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import readline from 'node:readline';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -13,6 +12,7 @@ import { ToolSet } from '../toolset/ToolSet.js';
 import { runPython } from '../bridge/PythonBridge.js';
 import { DevServer } from '../ui/Server.js';
 import { LocalStore } from '../store/LocalStore.js';
+import { SetupWizard } from './SetupWizard.js';
 
 // Load env from .env and ~/.medrix/.env
 dotenvConfig();
@@ -61,30 +61,16 @@ program
 program
   .command('setup')
   .description('Interactive API-key setup. Writes to ~/.medrix/.env')
-  .action(async () => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const ask = (q: string) =>
-      new Promise<string>((resolve) => rl.question(q, (a) => resolve(a.trim())));
-
-    console.log('MedrixAI setup. Leave blank to skip a key.');
-    const openai = await ask('OPENAI_API_KEY: ');
-    const anthropic = await ask('ANTHROPIC_API_KEY: ');
-    const google = await ask('GOOGLE_API_KEY: ');
-    const model = await ask(`MEDRIX_MODEL [${defaultModel()}]: `);
-    const nats = await ask('NATS_URL [nats://localhost:4222]: ');
-    rl.close();
-
-    const dir = path.join(os.homedir(), '.medrix');
-    await fs.mkdir(dir, { recursive: true });
-    const lines: string[] = [];
-    if (openai) lines.push(`OPENAI_API_KEY=${openai}`);
-    if (anthropic) lines.push(`ANTHROPIC_API_KEY=${anthropic}`);
-    if (google) lines.push(`GOOGLE_API_KEY=${google}`);
-    lines.push(`MEDRIX_MODEL=${model || defaultModel()}`);
-    lines.push(`NATS_URL=${nats || 'nats://localhost:4222'}`);
-    const envPath = path.join(dir, '.env');
-    await fs.writeFile(envPath, lines.join('\n') + '\n');
-    console.log(`Wrote ${envPath}`);
+  .option('--no-validate', 'Skip live API key validation')
+  .option('--non-interactive', 'Use existing env without prompting')
+  .action(async (opts) => {
+    const wizard = new SetupWizard({
+      skipValidation: opts.validate === false,
+      nonInteractive: !!opts.nonInteractive,
+    });
+    const result = await wizard.run();
+    console.log(`Configured providers: ${result.providers.join(', ') || '(none)'}`);
+    console.log(`Default model: ${result.defaultModel}`);
   });
 
 // --- Store commands ---

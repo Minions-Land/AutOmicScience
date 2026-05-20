@@ -2,9 +2,24 @@
 
 export type Role = 'system' | 'user' | 'assistant' | 'tool';
 
+/** Text content block for multi-modal messages. */
+export interface TextContent {
+  type: 'text';
+  text: string;
+}
+
+/** Image content block for multi-modal messages. */
+export interface ImageContent {
+  type: 'image';
+  /** URL or base64-encoded data URI (e.g. "data:image/png;base64,..."). */
+  source: string;
+  /** Optional media type hint, e.g. "image/png". */
+  mediaType?: string;
+}
+
 export interface Message {
   role: Role;
-  content: string;
+  content: string | (TextContent | ImageContent)[];
   name?: string;
   tool_call_id?: string;
   tool_calls?: ToolCall[];
@@ -40,6 +55,7 @@ export interface ChatOptions {
   stream?: boolean;
   extendedThinking?: boolean;
   signal?: AbortSignal;
+  responseFormat?: 'text' | 'json_object' | { type: 'json_schema'; schema: Record<string, unknown> };
 }
 
 export interface OpenAIToolDef {

@@ -1,35 +1,36 @@
 import { createServer, type Server as NodeHttpServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { Agent } from '../agent/Agent.js';
+import type { ToolSet } from '../toolset/ToolSet.js';
 import { logger } from '../utils/logger.js';
 
 /**
  * REST/SSE HTTP endpoint for invoking MedrixAI agents over HTTP.
- */
-export interface HttpEndpoint {
-  /** Start listening on the given port. */
-  listen(port: number): Promise<void>;
-  /** Close the HTTP server. */
-  close(): Promise<void>;
-}
-
-/**
- * Real HTTP endpoint implementation with SSE streaming.
  *
  * Routes:
- * - POST /api/chat — body `{ agent: string, message: string }` -> SSE stream of AgentEvents
- * - GET /api/agents — JSON list of agent names
+ *   GET  /health              — health check
+ *   GET  /api/agents          — list agents with metadata
+ *   POST /api/chat            — SSE streaming chat with an agent
+ *   GET  /api/tools           — list all tools across all toolsets
+ *   POST /api/tools/:name     — call a specific tool (used by ToolsetProxy)
  */
-export class StubHttpEndpoint implements HttpEndpoint {
+export class HttpEndpoint {
   private server: NodeHttpServer | null = null;
   private agents: Map<string, Agent>;
+  private toolsets: ToolSet[];
 
-  constructor(agents: Agent[] = []) {
+  constructor(agents: Agent[] = [], toolsets: ToolSet[] = []) {
     this.agents = new Map(agents.map((a) => [a.name, a]));
+    this.toolsets = toolsets;
   }
 
   /** Register an agent after construction. */
   addAgent(agent: Agent): void {
     this.agents.set(agent.name, agent);
+  }
+
+  /** Register a toolset after construction. */
+  addToolset(ts: ToolSet): void {
+    this.toolsets.push(ts);
   }
 
   /** Start listening on the given port. */
@@ -57,10 +58,7 @@ export class StubHttpEndpoint implements HttpEndpoint {
   /** Close the HTTP server. */
   async close(): Promise<void> {
     return new Promise((resolve) => {
-      if (!this.server) {
-        resolve();
-        return;
-      }
+      if (!this.server) { resolve(); return; }
       this.server.close(() => resolve());
     });
   }
@@ -68,23 +66,65 @@ export class StubHttpEndpoint implements HttpEndpoint {
   private async handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
 
-    // CORS headers
+    // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204);
-      res.end();
-      return;
-    }
+    if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
-    if (req.method === 'GET' && url.pathname === '/api/agents') {
+    // GET /health
+    if (req.method === 'GET' && url.pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ agents: Array.from(this.agents.keys()) }));
+      res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
       return;
     }
 
+    // GET /api/agents
+    if (req.method === 'GET' && url.pathname === '/api/agents') {
+      const agents = Array.from(this.agents.values()).map((a) => ({
+        name: a.name,
+      }));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ agents }));
+      return;
+    }
+
+    // GET /api/tools
+    if (req.method === 'GET' && url.pathname === '/api/tools') {
+      const tools: Array<{ name: string; description: string; toolset: string }> = [];
+      for (const ts of this.toolsets) {
+        for (const t of ts.list()) {
+          tools.push({ name: t.name, description: t.description, toolset: ts.name });
+        }
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ tools }));
+      return;
+    }
+
+    // POST /api/tools/:name
+    const toolMatch = url.pathname.match(/^\/api\/tools\/(.+)$/);
+    if (req.method === 'POST' && toolMatch) {
+      const toolName = decodeURIComponent(toolMatch[1]);
+      const body = await this.readBody(req);
+      const args = body ? (JSON.parse(body) as Record<string, unknown>) : {};
+
+      for (const ts of this.toolsets) {
+        if (ts.has(toolName)) {
+          const result = await ts.execute(toolName, args, { agentName: 'http' });
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ result: result.content }));
+          return;
+        }
+      }
+
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: `Tool '${toolName}' not found` }));
+      return;
+    }
+
+    // POST /api/chat  — SSE streaming
     if (req.method === 'POST' && url.pathname === '/api/chat') {
       const body = await this.readBody(req);
       const { agent: agentName, message } = JSON.parse(body) as { agent: string; message: string };
@@ -96,7 +136,6 @@ export class StubHttpEndpoint implements HttpEndpoint {
         return;
       }
 
-      // SSE streaming
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
