@@ -1,133 +1,215 @@
+<div align="center">
+
 # MedrixAI
 
-A distributed, evolvable multi-agent framework for data science and
-single-cell biology. TypeScript, ESM, Node 20+.
+**An evolvable, distributed multi-agent framework for data science and single-cell biology — written in TypeScript.**
 
-## Quick Start
+[Documentation](#-medrixai) · [Quick Start](#3-installation) · [Architecture](#5-architecture) · [Contributing](./CONTRIBUTING.md) · [Issues](https://github.com/Minions-Land/MedrixAI/issues)
+
+</div>
+
+<div align="center">
+
+<!-- SHIELD GROUP -->
+
+[![][github-stars-shield]][github-stars-link]
+[![][github-forks-shield]][github-forks-link]
+[![][github-issues-shield]][github-issues-link]
+[![][github-license-shield]][github-license-link]
+[![][typescript-shield]][typescript-link]
+[![][node-shield]][node-link]
+[![][status-shield]]()
+
+</div>
+
+---
+
+## `1` What is MedrixAI?
+
+MedrixAI is a **TypeScript-native, distributed multi-agent framework** that brings agentic code evolution, multi-channel deployment, and bioinformatics-grade compute under one roof. Built for end-to-end data science workflows with a particular focus on single-cell biology, MedrixAI lets agents collaborate across NATS, MCP, and external messaging platforms — and improve themselves through genetic-algorithm-driven code evolution.
+
+### Key Highlights
+
+- **🧬 Evolvable** — Built-in genetic algorithm engine with LLM-driven mutation, sandbox evaluation, island-model populations, and full lineage tracking
+- **👥 Multi-Agent Teams** — Sequential, Swarm (with handoff), CoordinatorTeam (dynamic re-plan), Mixture-of-Agents, and AgentAsTool patterns
+- **🌐 Distributed** — NATS-based chatroom and remote agent execution for scalable, fault-tolerant deployments
+- **📡 Multi-Channel Gateway** — Native adapters for Slack, Telegram, Discord, WeChat, Feishu, QQ, and iMessage
+- **🔧 20+ Built-in Toolsets** — Shell, code analysis, file ops, Python/R/Julia, Jupyter, web/scraping, database, image generation, knowledge/RAG, scFM
+- **🔌 MCP Native** — Both client (consume MCP servers) and server (expose agents as MCP) modes
+- **🛍️ Package Store** — Auth, publish, install with local + remote registries
+- **🧠 Internal Systems** — Pattern learning, persistent memory, background tasks, attachment pipeline, multi-layer config
+
+## `2` Quick Start
+
+| | |
+| :--- | :--- |
+| 📦 | `npm install` |
+| 🪄 | `npx medrix setup` — interactive wizard for API keys + default model |
+| 💬 | `npx medrix cli` — interactive REPL with slash commands |
+| 🚀 | `npx medrix serve` — HTTP/SSE endpoint on port 4000 |
+| 🧪 | `npm test` — vitest test suite |
+
+## `3` Installation
+
+### From Source
 
 ```bash
+git clone https://github.com/Minions-Land/MedrixAI.git
+cd MedrixAI
 npm install
-npx medrix setup          # interactive wizard: configure API keys + default model
-npx medrix cli            # interactive REPL
-npx medrix serve          # HTTP/SSE endpoint on port 4000
-npm test                  # vitest
+cp .env.example .env   # fill in at least one API key
+npm test               # verify everything works
 ```
 
-## Features
+### Optional Native Dependencies
 
-- **Multi-model agents** with streaming, tool calling, vision, `+think` mode, retry + fallback chains
-- **5 team patterns**: Sequential, Swarm (with handoff), CoordinatorTeam (dynamic re-plan), MixtureOfAgents, AgentAsTool
-- **20+ built-in toolsets**: shell, code analysis, file ops, Python/R/Julia, Jupyter notebooks, web/scraping, database, image generation, knowledge/RAG, scFM, task management, file transfer
-- **Distributed chatroom** via NATS pub/sub with room manager, special agents, projects, export
-- **7-channel gateway**: Slack, Telegram, Discord, WeChat, Feishu, QQ, iMessage
-- **Code evolution engine**: LLM-driven mutation, sandbox evaluation, island model, lineage tracking
-- **MCP support**: both client (consume MCP servers) and server (expose agents as MCP)
-- **Package store**: auth, publish, install, local + remote registries
-- **Internal systems**: learning (pattern extraction), persistent memory, background tasks, attachment pipeline
+Some toolsets dynamically load optional packages — install only what you need:
 
-## Architecture
-
-```
-src/
-├── agent/           Agent core + compression + hooks + clone + smartFunc
-├── bridge/          Python subprocess seam (scientific compute)
-├── chatroom/        NATS room manager, special agents, projects, export, threads, streaming
-├── cli/             CLI entry + SetupWizard
-├── endpoint/        MCP server (3 primitives) + HTTP/SSE + ToolsetProxy + Hub
-├── evolution/       GA engine: LLMMutator, Evaluator, Database, IslandModel, Visualizer
-├── factory/         Template manager (agents/teams/skills/prompts) with sync
-├── gateway/         Channel manager + 7 adapters + route registry + config store
-├── internal/        LearningSystem, MemorySystem, BackgroundAgent, PackageRuntime, AttachmentPipeline
-├── knowledge/       KnowledgeBase interface + InMemoryKB (TF-IDF) + VectorStoreKB (embeddings)
-├── mcp/             McpClient (stdio/SSE) + McpPlugin interface
-├── memory/          Memory interface + InMemoryMemory + FileMemory (JSONL persistence)
-├── provider/        OpenAI + Anthropic + Gemini + ModelSelector + ToolProvider
-├── remote/          RemoteAgent + RemoteWorker (NATS distributed execution)
-├── repl/            Interactive REPL with 12 slash commands + session management
-├── schemas/         Zod schemas for annotation pipeline outputs
-├── session/         FileSessionStore (conversation persistence)
-├── skill/           Skill interface + SkillLoader (markdown frontmatter + TS modules)
-├── store/           Store client + auth + installer + publisher + local/remote
-├── task/            TaskManager + InMemoryTaskManager
-├── team/            Sequential, Swarm, CoordinatorTeam, MoA, AgentAsTool, Plugin system
-├── toolset/         Tool/ToolSet + 20 built-in toolsets
-├── ui/              Dev server (placeholder for frontend)
-├── utils/           Logger (file rotation), vision, tokens, model discovery, process, template
-├── settings.ts      Multi-layer config (env + JSONC + deep merge)
-├── types.ts         Shared interfaces
-└── index.ts         Public barrel export
+```bash
+npm install ws                # NATS WebSocket / Slack Socket Mode / Discord gateway
+npm install better-sqlite3    # SQLite database tool
+npm install pg                # PostgreSQL database tool
+npm install sharp             # image resizing in vision utilities
+npm install gpt-tokenizer     # accurate BPE token counting
 ```
 
-## Usage
+### Python Bridge (for scientific compute)
 
-### Agent
+The bridge at `src/bridge/runtime/` runs Python for `anndata`, `scanpy`, `scikit-learn`, `torch`, and R/scDesign3 workflows. Install once:
+
+```bash
+pip install -e src/bridge/runtime/
+```
+
+## `4` Usage
+
+### REPL
+
+```bash
+npx medrix cli
+```
+
+Slash commands: `/help`, `/clear`, `/history`, `/save`, `/load`, `/sessions`, `/model`, `/tools`, `/verbose`, `/cancel`, `/export`, `/new`
+
+### Programmatic API
 
 ```ts
-import { Agent } from 'medrix-ai';
+import { Agent, ToolSet, defineTool, z } from 'medrix-ai';
 
-const agent = new Agent({
-  name: 'assistant',
-  model: 'gpt-4o',                    // or fallback chain: ['gpt-4o', 'claude-sonnet-4-20250514']
-  systemPrompt: 'You are helpful.',
-  // model: 'claude-sonnet-4-20250514+think:high'  // extended thinking
-});
-
-for await (const ev of agent.run('Hello')) {
-  if (ev.type === 'text') process.stdout.write(ev.data as string);
-}
-
-const copy = agent.clone({ name: 'copy', model: 'gpt-4o-mini' });
-```
-
-### Tools
-
-```ts
-import { defineTool, ToolSet, z } from 'medrix-ai';
-
-const tool = defineTool<{ q: string }, string>({
+const searchTool = defineTool<{ q: string }, string>({
   name: 'search',
   description: 'Search the web.',
   parameters: z.object({ q: z.string() }),
   execute: async ({ q }) => `Results for: ${q}`,
 });
 
-const agent = new Agent({ model: 'gpt-4o', toolset: new ToolSet('my', [tool]) });
+const agent = new Agent({
+  name: 'assistant',
+  model: 'claude-sonnet-4-20250514+think:high',  // extended thinking
+  toolset: new ToolSet('default', [searchTool]),
+});
+
+for await (const event of agent.run('Find papers on single-cell ATAC-seq')) {
+  if (event.type === 'text') process.stdout.write(event.data as string);
+}
 ```
 
-### Teams
+### Multi-Agent Teams
 
 ```ts
-import { CoordinatorTeam, Sequential, Agent } from 'medrix-ai';
+import { CoordinatorTeam, Agent } from 'medrix-ai';
 
 const coordinator = new Agent({ model: 'gpt-4o', name: 'planner' });
-const workers = [new Agent({ model: 'gpt-4o-mini', name: 'coder' })];
+const workers = [
+  new Agent({ model: 'gpt-4o-mini', name: 'coder' }),
+  new Agent({ model: 'gpt-4o-mini', name: 'reviewer' }),
+];
+
 const team = new CoordinatorTeam(coordinator, workers);
 
-for await (const ev of team.run('Build a REST API')) { ... }
+for await (const event of team.run('Refactor this auth module')) {
+  console.log(event.type, event.data);
+}
 ```
 
-### Gateway
+### Multi-Channel Gateway
 
 ```ts
 import { GatewayChannelManager } from 'medrix-ai';
 
 const gw = new GatewayChannelManager();
 gw.onMessage(async (route, msg) => agent.runToText(msg.text));
+
 await gw.startChannel('telegram');
+await gw.startChannel('slack');
+await gw.startChannel('discord');
 ```
 
-### Evolution
+### Evolution Engine
 
 ```ts
 import { EvolutionEngine } from 'medrix-ai';
 
-const engine = new EvolutionEngine({ populationSize: 20, generations: 10, model: 'gpt-4o-mini' });
+const engine = new EvolutionEngine({
+  populationSize: 20,
+  generations: 10,
+  model: 'gpt-4o-mini',
+  islands: 4,
+});
+
 for await (const event of engine.run(initialPopulation, evaluator)) {
-  if (event.type === 'generation') console.log(`Gen ${event.data.index}: best=${event.data.bestFitness}`);
+  if (event.type === 'generation') {
+    console.log(`Gen ${event.data.index}: best=${event.data.bestFitness}`);
+  }
 }
 ```
 
-## Environment Variables
+## `5` Architecture
+
+```
+src/
+├── agent/           # Agent core + compression + hooks + clone + smartFunc
+├── bridge/          # Python subprocess seam (scientific compute)
+├── chatroom/        # NATS room manager, special agents, projects, export
+├── cli/             # CLI entry + SetupWizard
+├── endpoint/        # MCP server + HTTP/SSE + ToolsetProxy + Hub
+├── evolution/       # GA engine: LLMMutator, Evaluator, IslandModel
+├── factory/         # Template manager (~/.medrix/)
+├── gateway/         # 7 channel adapters + route registry + config
+├── internal/        # Learning + memory + background + attachment pipeline
+├── knowledge/       # InMemoryKB (TF-IDF) + VectorStoreKB (embeddings)
+├── mcp/             # McpClient (stdio/SSE) + McpPlugin
+├── memory/          # InMemoryMemory + FileMemory (JSONL)
+├── provider/        # OpenAI + Anthropic + Gemini + ToolProvider
+├── remote/          # NATS-based distributed agent execution
+├── repl/            # Interactive REPL with 12 slash commands
+├── schemas/         # Zod schemas for annotation pipeline
+├── session/         # FileSessionStore (conversation persistence)
+├── skill/           # Skill loader (markdown + TS modules)
+├── store/           # Package store (auth, client, installer, publisher)
+├── task/            # TaskManager + InMemoryTaskManager
+├── team/            # 5 team patterns + plugin system
+├── toolset/         # Tool/ToolSet + 20 built-in toolsets
+├── utils/           # logger, vision, tokens, model discovery, process
+├── settings.ts      # Multi-layer config (env + JSONC + deep merge)
+└── types.ts         # Shared interfaces
+```
+
+## `6` Extension Points
+
+| Seam | Interface | How to Extend |
+|------|-----------|---------------|
+| **Tool** | `Tool<TArgs, TResult>` | `defineTool(...)` or `@tool()` decorator |
+| **Skill** | `Skill` | Markdown file with frontmatter or TS module |
+| **MCP** | `McpPlugin` | `McpClient` for stdio/SSE, or implement interface |
+| **Provider** | `LLMProvider` | Implement `chat()` as async generator |
+| **Memory** | `Memory` | `InMemoryMemory`, `FileMemory`, or custom |
+| **Knowledge** | `KnowledgeBase` | `InMemoryKB`, `VectorStoreKB`, or custom |
+| **Team** | `Team` (abstract) | Implement `run()` as `AsyncGenerator<AgentEvent>` |
+| **Gateway** | `ChannelAdapter` | Implement `start/stop/sendReply` for new platforms |
+| **Store** | `Store` | `LocalStore`, `RemoteStore`, or custom registry |
+
+## `7` Environment Variables
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
@@ -138,22 +220,38 @@ for await (const event of engine.run(initialPopulation, evaluator)) {
 | `OPENAI_API_KEY` | — | OpenAI provider |
 | `ANTHROPIC_API_KEY` | — | Anthropic provider |
 | `GOOGLE_API_KEY` | — | Gemini provider |
-| `NATS_URL` | `nats://localhost:4222` | NATS server for chatroom/remote |
+| `NATS_URL` | `nats://localhost:4222` | NATS server for chatroom + remote |
 
-## Extension Points
+## `8` Contributing
 
-| Seam | Interface | How to extend |
-|------|-----------|---------------|
-| Tool | `Tool<TArgs, TResult>` | `defineTool(...)` or `@tool()` decorator |
-| Skill | `Skill` | Markdown file with frontmatter or TS module |
-| MCP | `McpPlugin` | `McpClient` for stdio/SSE, or implement interface |
-| Provider | `LLMProvider` | Implement `chat()` as async generator |
-| Memory | `Memory` | `InMemoryMemory` (default), `FileMemory` (persistent), or custom |
-| Knowledge | `KnowledgeBase` | `InMemoryKB` (TF-IDF), `VectorStoreKB` (embeddings), or custom |
-| Team | `Team` (abstract) | Implement `run()` as `AsyncGenerator<AgentEvent>` |
-| Gateway | `ChannelAdapter` | Implement `start/stop/sendReply` for new platforms |
-| Store | `Store` | `LocalStore`, `RemoteStore`, or custom registry |
+Contributions of all kinds are welcome — new toolsets, gateway channels, providers, evolution strategies, or just bug reports. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the developer guide, project structure, coding rules, and PR conventions.
+
+[![][pr-welcome-shield]][pr-welcome-link]
 
 ## License
 
 MIT
+
+Copyright © 2026 [Minions-Land](https://github.com/Minions-Land).
+
+---
+
+<!-- LINK GROUP -->
+
+[github-stars-shield]: https://img.shields.io/github/stars/Minions-Land/MedrixAI?color=ffcb47&labelColor=black&style=flat-square
+[github-stars-link]: https://github.com/Minions-Land/MedrixAI/stargazers
+[github-forks-shield]: https://img.shields.io/github/forks/Minions-Land/MedrixAI?color=8ae8ff&labelColor=black&style=flat-square
+[github-forks-link]: https://github.com/Minions-Land/MedrixAI/network/members
+[github-issues-shield]: https://img.shields.io/github/issues/Minions-Land/MedrixAI?color=ff80eb&labelColor=black&style=flat-square
+[github-issues-link]: https://github.com/Minions-Land/MedrixAI/issues
+[github-license-shield]: https://img.shields.io/badge/license-MIT-white?labelColor=black&style=flat-square
+[github-license-link]: https://github.com/Minions-Land/MedrixAI/blob/main/LICENSE
+
+[typescript-shield]: https://img.shields.io/badge/TypeScript-5.6%2B-3178C6?labelColor=black&logo=typescript&logoColor=white&style=flat-square
+[typescript-link]: https://www.typescriptlang.org/
+[node-shield]: https://img.shields.io/badge/Node.js-20%2B-339933?labelColor=black&logo=node.js&logoColor=white&style=flat-square
+[node-link]: https://nodejs.org/
+[status-shield]: https://img.shields.io/badge/status-beta-orange?labelColor=black&style=flat-square
+
+[pr-welcome-shield]: https://img.shields.io/badge/👌_pr_welcome-%E2%86%92-ffcb47?labelColor=black&style=for-the-badge
+[pr-welcome-link]: https://github.com/Minions-Land/MedrixAI/pulls
