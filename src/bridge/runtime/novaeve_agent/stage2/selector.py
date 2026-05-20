@@ -19,8 +19,8 @@ import yaml
 from scipy import sparse
 from sklearn.metrics import accuracy_score, f1_score
 
-from novaeve_bio import paths
-from novaeve_bio.eval.label_transfer import (
+from novaeve_agent import paths
+from novaeve_agent.eval.label_transfer import (
     EmbeddingAdapter,
     MatrixBundle,
     _align_reference_and_query,
@@ -29,8 +29,8 @@ from novaeve_bio.eval.label_transfer import (
     _split_method,
     _vote_knn,
 )
-from novaeve_bio.io import ensure_dir, normalize_gene_name, read_json, read_standard_bundle, stratified_indices, write_json
-from novaeve_bio.llm_config import build_openai_client, default_llm_model
+from novaeve_agent.io import ensure_dir, normalize_gene_name, read_json, read_standard_bundle, stratified_indices, write_json
+from novaeve_agent.llm_config import build_openai_client, default_llm_model
 
 
 DEFAULT_ARTIFACT_BUNDLE = paths.SCMAS_ROOT / "artifacts" / "stage1_full"

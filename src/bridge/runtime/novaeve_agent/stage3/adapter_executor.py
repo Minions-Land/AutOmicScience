@@ -12,11 +12,11 @@ from typing import Any
 
 import pandas as pd
 
-from novaeve_bio import paths
-from novaeve_bio.eval.registry import ModelSpec, artifact_exists, load_model_registry, resolve_portable_path
-from novaeve_bio.io import ensure_dir, read_yaml, write_json, write_yaml
-from novaeve_bio.llm_config import build_openai_client, default_llm_model
-from novaeve_bio.stage2.selector import run_cross_species_plan
+from novaeve_agent import paths
+from novaeve_agent.eval.registry import ModelSpec, artifact_exists, load_model_registry, resolve_portable_path
+from novaeve_agent.io import ensure_dir, read_yaml, write_json, write_yaml
+from novaeve_agent.llm_config import build_openai_client, default_llm_model
+from novaeve_agent.stage2.selector import run_cross_species_plan
 
 
 DEFAULT_CAPABILITY_DIR = paths.SCMAS_ROOT / "configs" / "capability"

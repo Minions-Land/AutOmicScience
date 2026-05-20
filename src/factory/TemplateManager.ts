@@ -19,14 +19,14 @@ export interface TeamTemplate {
 }
 
 /**
- * Manages a `~/.novaeve/` directory holding agent/team templates as JSON.
+ * Manages a `~/.medrix/` directory holding agent/team templates as JSON.
  * Markdown skills can also live alongside under `skills/`.
  */
 export class TemplateManager {
   public readonly root: string;
 
   constructor(root?: string) {
-    this.root = root ?? path.join(os.homedir(), '.novaeve');
+    this.root = root ?? path.join(os.homedir(), '.medrix');
   }
 
   async init(): Promise<void> {

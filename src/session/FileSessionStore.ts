@@ -4,11 +4,11 @@ import os from 'node:os';
 import type { Message } from '../types.js';
 import type { SessionStore } from './SessionStore.js';
 
-const SESSIONS_DIR = path.join(os.homedir(), '.novaeve', 'sessions');
+const SESSIONS_DIR = path.join(os.homedir(), '.medrix', 'sessions');
 
 /**
  * File-based session store implementation.
- * Stores each session as a JSON file at ~/.novaeve/sessions/<id>.json.
+ * Stores each session as a JSON file at ~/.medrix/sessions/<id>.json.
  */
 export class FileSessionStore implements SessionStore {
   private dir: string;

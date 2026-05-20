@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from novaeve_bio.io import read_yaml
-from novaeve_bio import paths
+from novaeve_agent.io import read_yaml
+from novaeve_agent import paths
 
 
 DEFAULT_REGISTRY = paths.SCMAS_ROOT / "configs" / "model_registry.yaml"

@@ -7,9 +7,9 @@ import anndata as ad
 import pandas as pd
 from scipy import io as spio
 
-from novaeve_bio import paths
-from novaeve_bio.io import ensure_dir, read_json, write_json
-from novaeve_bio.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
+from novaeve_agent import paths
+from novaeve_agent.io import ensure_dir, read_json, write_json
+from novaeve_agent.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
 
 
 REPORTS_DIR = paths.SCMAS_ROOT / "reports"
@@ -131,7 +131,7 @@ def build_dataset_catalog(
     split_path = paths.SEAAD_DONOR_SPLIT_JSON
     split = read_json(split_path) if split_path.exists() else None
     if split is None:
-        from novaeve_bio.data.reference import write_seaad_donor_split
+        from novaeve_agent.data.reference import write_seaad_donor_split
 
         split = write_seaad_donor_split()
 

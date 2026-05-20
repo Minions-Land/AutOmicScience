@@ -8,8 +8,8 @@ from typing import Any
 
 import pandas as pd
 
-from novaeve_bio import paths
-from novaeve_bio.io import ensure_dir, read_json, write_json
+from novaeve_agent import paths
+from novaeve_agent.io import ensure_dir, read_json, write_json
 
 
 def _select_anchor_and_rare(prepared_source_dir: Path) -> tuple[str, str, list[str]]:

@@ -8,8 +8,8 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 
-from novaeve_bio import paths
-from novaeve_bio.io import ensure_dir, read_json, write_json
+from novaeve_agent import paths
+from novaeve_agent.io import ensure_dir, read_json, write_json
 
 
 def _category_values(series: pd.Series) -> list[str]:

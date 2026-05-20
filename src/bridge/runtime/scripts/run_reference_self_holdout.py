@@ -12,9 +12,9 @@ import pandas as pd
 from scipy import sparse
 from sklearn.metrics import accuracy_score, f1_score
 
-from novaeve_bio import paths
-from novaeve_bio.eval.label_transfer import EmbeddingAdapter, MatrixBundle, _prototype_predict, _split_method, _vote_knn
-from novaeve_bio.io import ensure_dir, normalize_gene_name, read_json, read_standard_bundle, stratified_indices
+from novaeve_agent import paths
+from novaeve_agent.eval.label_transfer import EmbeddingAdapter, MatrixBundle, _prototype_predict, _split_method, _vote_knn
+from novaeve_agent.io import ensure_dir, normalize_gene_name, read_json, read_standard_bundle, stratified_indices
 
 
 DEFAULT_METHODS = [

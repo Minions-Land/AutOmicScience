@@ -5,7 +5,7 @@ import path from 'node:path';
 /**
  * Generic Python subprocess bridge.
  *
- * Novaeve-Agent's tools (Bio/Synthetic/Benchmark/AnnotationStage) call into
+ * MedrixAI's tools (Bio/Synthetic/Benchmark/AnnotationStage) call into
  * the bundled Python runtime that owns the heavy scientific compute
  * (anndata, scanpy, sklearn, torch, R/scDesign3). This file is the single
  * process boundary; everything above it is typed Tool/Agent surface.
@@ -15,11 +15,11 @@ import path from 'node:path';
  */
 
 export interface BridgeOptions {
-  /** Python executable. Default: env NOVAEVE_PYTHON_BIN or `python`. */
+  /** Python executable. Default: env MEDRIX_PYTHON_BIN or `python`. */
   pythonBin?: string;
-  /** Runtime root. Default: env NOVAEVE_PYTHON_RUNTIME or the bundled runtime/. */
+  /** Runtime root. Default: env MEDRIX_PYTHON_RUNTIME or the bundled runtime/. */
   cwd?: string;
-  /** Module name to invoke with `python -m <module>`. Default: `novaeve_bio`. */
+  /** Module name to invoke with `python -m <module>`. Default: `novaeve_agent`. */
   moduleName?: string;
   /** Extra env vars merged on top of process.env. */
   env?: NodeJS.ProcessEnv;
@@ -45,14 +45,14 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const VENDORED_DIR = path.resolve(HERE, 'runtime');
 
 // Internal Python module name for the biological compute runtime.
-const DEFAULT_PYTHON_MODULE = 'novaeve_bio';
+const DEFAULT_PYTHON_MODULE = 'novaeve_agent';
 
 export function resolveVendorRoot(opt?: BridgeOptions): string {
-  return opt?.cwd ?? process.env.NOVAEVE_PYTHON_RUNTIME ?? VENDORED_DIR;
+  return opt?.cwd ?? process.env.MEDRIX_PYTHON_RUNTIME ?? VENDORED_DIR;
 }
 
 export function resolvePythonBin(opt?: BridgeOptions): string {
-  return opt?.pythonBin ?? process.env.NOVAEVE_PYTHON_BIN ?? 'python';
+  return opt?.pythonBin ?? process.env.MEDRIX_PYTHON_BIN ?? 'python';
 }
 
 /**

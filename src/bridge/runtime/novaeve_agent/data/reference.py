@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 
-from novaeve_bio import paths
-from novaeve_bio.data.labels import build_seaad_label_maps, load_merfish_genes
-from novaeve_bio.io import ensure_dir, normalize_gene_name, stratified_indices, write_json
+from novaeve_agent import paths
+from novaeve_agent.data.labels import build_seaad_label_maps, load_merfish_genes
+from novaeve_agent.io import ensure_dir, normalize_gene_name, stratified_indices, write_json
 
 
 def write_seaad_donor_split(

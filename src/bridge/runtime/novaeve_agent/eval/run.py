@@ -15,11 +15,11 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from novaeve_bio import paths
-from novaeve_bio.eval.datasets import prepare_all_eval_datasets
-from novaeve_bio.eval.metrics import classification_metrics, metrics_from_prediction_npz
-from novaeve_bio.eval.registry import ModelSpec, artifact_exists, load_model_registry
-from novaeve_bio.io import ensure_dir, read_json, write_json
+from novaeve_agent import paths
+from novaeve_agent.eval.datasets import prepare_all_eval_datasets
+from novaeve_agent.eval.metrics import classification_metrics, metrics_from_prediction_npz
+from novaeve_agent.eval.registry import ModelSpec, artifact_exists, load_model_registry
+from novaeve_agent.io import ensure_dir, read_json, write_json
 
 
 MCP_TOOLS_DIR = paths.LEGACY_ROOT / "tools_layer" / "mcp_tools"

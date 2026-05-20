@@ -18,7 +18,7 @@ export interface ToolMetadata {
   name?: string;
 }
 
-export const TOOL_METADATA = Symbol.for('novaeve.tool.metadata');
+export const TOOL_METADATA = Symbol.for('medrix.tool.metadata');
 
 type DecoratedTarget = Record<string | symbol, unknown> & {
   constructor: { name: string };

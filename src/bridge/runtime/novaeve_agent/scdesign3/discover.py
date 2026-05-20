@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from novaeve_bio import paths
-from novaeve_bio.io import read_json
+from novaeve_agent import paths
+from novaeve_agent.io import read_json
 
 
 EXPECTED_EXISTING_VARIANTS = [

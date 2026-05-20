@@ -1,4 +1,4 @@
-from novaeve_bio.cli import main
+from novaeve_agent.cli import main
 
 
 if __name__ == "__main__":

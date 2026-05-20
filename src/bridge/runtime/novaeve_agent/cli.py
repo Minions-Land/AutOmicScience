@@ -3,20 +3,20 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from novaeve_bio import paths
-from novaeve_bio.data.catalog import build_dataset_catalog
-from novaeve_bio.data.labels import build_seaad_label_maps
-from novaeve_bio.data.prepare_sources import prepare_generation_sources
-from novaeve_bio.data.reference import build_reference, build_seaad_test_h5ad
-from novaeve_bio.eval.datasets import prepare_all_eval_datasets
-from novaeve_bio.eval.label_transfer import evaluate_raw_label_transfer
-from novaeve_bio.eval.run import run_evaluation
-from novaeve_bio.eval.uce_ima import run_uce_ima_label_transfer
-from novaeve_bio.io import write_json
-from novaeve_bio.scdesign3.generate import preflight_scdesign3, run_generation_configs, write_generation_configs
-from novaeve_bio.stage2.selector import profile_query, run_cross_species_plan, select_models
-from novaeve_bio.stage3.adapter_executor import adapt_and_execute, inspect_model_contracts
-from novaeve_bio.stage4.consensus import run_consensus
+from novaeve_agent import paths
+from novaeve_agent.data.catalog import build_dataset_catalog
+from novaeve_agent.data.labels import build_seaad_label_maps
+from novaeve_agent.data.prepare_sources import prepare_generation_sources
+from novaeve_agent.data.reference import build_reference, build_seaad_test_h5ad
+from novaeve_agent.eval.datasets import prepare_all_eval_datasets
+from novaeve_agent.eval.label_transfer import evaluate_raw_label_transfer
+from novaeve_agent.eval.run import run_evaluation
+from novaeve_agent.eval.uce_ima import run_uce_ima_label_transfer
+from novaeve_agent.io import write_json
+from novaeve_agent.scdesign3.generate import preflight_scdesign3, run_generation_configs, write_generation_configs
+from novaeve_agent.stage2.selector import profile_query, run_cross_species_plan, select_models
+from novaeve_agent.stage3.adapter_executor import adapt_and_execute, inspect_model_contracts
+from novaeve_agent.stage4.consensus import run_consensus
 
 
 def _add_common_size_args(parser: argparse.ArgumentParser) -> None:
@@ -25,7 +25,7 @@ def _add_common_size_args(parser: argparse.ArgumentParser) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="novaeve_bio", description="scMAS multi-stage annotation workflow")
+    parser = argparse.ArgumentParser(prog="novaeve_agent", description="scMAS multi-stage annotation workflow")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("build-label-maps", help="Build SEA-AD label/gene maps.")

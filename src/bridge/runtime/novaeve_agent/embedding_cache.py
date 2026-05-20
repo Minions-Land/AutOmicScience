@@ -9,8 +9,8 @@ from typing import Any
 import numpy as np
 from scipy import sparse
 
-from novaeve_bio import paths
-from novaeve_bio.io import ensure_dir, write_json
+from novaeve_agent import paths
+from novaeve_agent.io import ensure_dir, write_json
 
 
 CACHE_VERSION = "embedding-cache-v1"

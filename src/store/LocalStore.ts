@@ -4,12 +4,12 @@ import os from 'node:os';
 import type { Store } from './Store.js';
 import type { StoreEntry } from './StoreEntry.js';
 
-const STORE_DIR = path.join(os.homedir(), '.novaeve', 'store');
+const STORE_DIR = path.join(os.homedir(), '.medrix', 'store');
 const REGISTRY_FILE = path.join(STORE_DIR, 'registry.json');
 
 /**
  * Local filesystem-backed store implementation.
- * Uses ~/.novaeve/store/registry.json as a JSON registry.
+ * Uses ~/.medrix/store/registry.json as a JSON registry.
  */
 export class LocalStore implements Store {
   private entries: StoreEntry[] = [];

@@ -16,8 +16,8 @@ import pandas as pd
 import yaml
 from sklearn.metrics import accuracy_score, f1_score
 
-from novaeve_bio.io import ensure_dir, write_json
-from novaeve_bio.stage2.selector import run_cross_species_plan
+from novaeve_agent.io import ensure_dir, write_json
+from novaeve_agent.stage2.selector import run_cross_species_plan
 
 
 def _read_yaml(path: str | Path) -> dict[str, Any]:

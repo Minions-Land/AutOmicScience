@@ -43,7 +43,7 @@ export class McpClient implements McpPlugin {
       } as any);
     }
     this.client = new Client(
-      { name: `novaeve-agent:${this.name}`, version: '0.1.0' },
+      { name: `medrix-ai:${this.name}`, version: '0.1.0' },
       { capabilities: {} },
     );
     await this.client.connect(this.transportInst);

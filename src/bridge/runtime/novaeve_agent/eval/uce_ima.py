@@ -13,11 +13,11 @@ import yaml
 from scipy import sparse
 from sklearn.metrics import accuracy_score, f1_score
 
-from novaeve_bio.embedding_cache import embedding_cache_key, load_embedding_cache, load_embedding_cache_metadata, save_embedding_cache
-from novaeve_bio import paths
-from novaeve_bio.io import ensure_dir, write_json, write_yaml
-from novaeve_bio.stage2.selector import load_query_bundle
-from novaeve_bio.stage4.consensus import UNKNOWN_LABEL, label_to_shared_coarse
+from novaeve_agent.embedding_cache import embedding_cache_key, load_embedding_cache, load_embedding_cache_metadata, save_embedding_cache
+from novaeve_agent import paths
+from novaeve_agent.io import ensure_dir, write_json, write_yaml
+from novaeve_agent.stage2.selector import load_query_bundle
+from novaeve_agent.stage4.consensus import UNKNOWN_LABEL, label_to_shared_coarse
 
 
 LEGACY_ROOT = paths.LEGACY_ROOT

@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from novaeve_bio.eval.registry import ModelSpec
-from novaeve_bio.eval.run import run_sklearn_model
-from novaeve_bio.io import ensure_dir
+from novaeve_agent.eval.registry import ModelSpec
+from novaeve_agent.eval.run import run_sklearn_model
+from novaeve_agent.io import ensure_dir
 
 
 def main() -> None:

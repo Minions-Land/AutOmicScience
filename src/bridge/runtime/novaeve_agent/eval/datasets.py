@@ -10,10 +10,10 @@ import pandas as pd
 from scipy import sparse
 from scipy import io as spio
 
-from novaeve_bio import paths
-from novaeve_bio.data.labels import build_seaad_label_maps, factorize_ids, load_merfish_genes, seaad_label_ids_from_obs
-from novaeve_bio.io import ensure_dir, normalize_gene_name, read_standard_bundle, write_json
-from novaeve_bio.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
+from novaeve_agent import paths
+from novaeve_agent.data.labels import build_seaad_label_maps, factorize_ids, load_merfish_genes, seaad_label_ids_from_obs
+from novaeve_agent.io import ensure_dir, normalize_gene_name, read_standard_bundle, write_json
+from novaeve_agent.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
 
 
 @dataclass
@@ -101,7 +101,7 @@ def _write_npz_and_h5ad(
 ) -> dict[str, Any]:
     if max_cells and max_cells > 0 and obs.shape[0] > max_cells:
         label_for_sampling = obs["Supertype"] if "Supertype" in obs.columns else pd.Series(np.arange(obs.shape[0]))
-        from novaeve_bio.io import stratified_indices
+        from novaeve_agent.io import stratified_indices
 
         idx = stratified_indices(label_for_sampling, max_cells=max_cells, min_per_group=5, seed=seed)
         x = sparse.csr_matrix(x)[idx, :]

@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 
-from novaeve_bio import paths
-from novaeve_bio.data.labels import load_merfish_genes
-from novaeve_bio.data.reference import (
+from novaeve_agent import paths
+from novaeve_agent.data.labels import load_merfish_genes
+from novaeve_agent.data.reference import (
     _read_gene_by_cell_csv_sample,
     _read_smartseq_sample,
     _sample_h5ad,
@@ -18,7 +18,7 @@ from novaeve_bio.data.reference import (
     annotate_whole_brain_obs,
     write_seaad_donor_split,
 )
-from novaeve_bio.io import ensure_dir, write_json, write_standard_bundle
+from novaeve_agent.io import ensure_dir, write_json, write_standard_bundle
 
 
 def _write_adata_bundle(

@@ -1,12 +1,12 @@
 {
-  "name": "novaeve-agent",
+  "name": "medrix-ai",
   "version": "0.1.0",
-  "description": "Novaeve-Agent — an evolvable, distributed multi-agent framework with a built-in bioinformatics annotation pipeline.",
+  "description": "MedrixAI — an evolvable, distributed multi-agent framework with a built-in bioinformatics annotation pipeline.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "novaeve": "dist/cli/index.js"
+    "medrix": "dist/cli/index.js"
   },
   "exports": {
     ".": "./dist/index.js"

@@ -15,18 +15,18 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
 
-from novaeve_bio import paths
-from novaeve_bio.eval.label_transfer import (
+from novaeve_agent import paths
+from novaeve_agent.eval.label_transfer import (
     EmbeddingAdapter,
     MatrixBundle,
     _align_reference_and_query,
     _load_reference_from_standard_bundle,
 )
-from novaeve_bio.io import ensure_dir, read_json, read_yaml, write_json
-from novaeve_bio.stage2.selector import load_query_bundle
-from novaeve_bio.stage4.llm_adjudicator import LLM_ADJUDICATION_METHOD, adjudicate_low_consistency_cells
-from novaeve_bio.stage4.policy import HIGH_CONSENSUS_MODEL_AGREEMENT, label_free_method_diagnostics, select_policy_method
-from novaeve_bio.stage4.reference_heads import train_reference_logistic_distribution
+from novaeve_agent.io import ensure_dir, read_json, read_yaml, write_json
+from novaeve_agent.stage2.selector import load_query_bundle
+from novaeve_agent.stage4.llm_adjudicator import LLM_ADJUDICATION_METHOD, adjudicate_low_consistency_cells
+from novaeve_agent.stage4.policy import HIGH_CONSENSUS_MODEL_AGREEMENT, label_free_method_diagnostics, select_policy_method
+from novaeve_agent.stage4.reference_heads import train_reference_logistic_distribution
 
 
 DEFAULT_STAGE4_ROOT = paths.RUNS_DIR / "stage4_consensus"

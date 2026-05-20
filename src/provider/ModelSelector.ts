@@ -20,5 +20,5 @@ export function providerForModel(model: string): LLMProvider {
 }
 
 export function defaultModel(): string {
-  return process.env.NOVAEVE_MODEL || 'gpt-4o-mini';
+  return process.env.MEDRIX_MODEL || 'gpt-4o-mini';
 }

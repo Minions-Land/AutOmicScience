@@ -1,13 +1,13 @@
-# Novaeve-Agent Developer Guide
+# MedrixAI Developer Guide
 
 This document is the scaffold for anyone building on, extending, or
-integrating with Novaeve-Agent. Read it before writing your first line.
+integrating with MedrixAI. Read it before writing your first line.
 
 ---
 
 ## 1. Frontend Integration (start here)
 
-Novaeve-Agent exposes two integration surfaces for frontends:
+MedrixAI exposes two integration surfaces for frontends:
 
 ### 1.1 Streaming Agent Events (primary)
 
@@ -17,7 +17,7 @@ in-process.
 
 ```ts
 // Server-side handler (e.g. Express / Hono / Fastify)
-import { Agent } from 'novaeve-agent';
+import { Agent } from 'medrix-ai';
 
 app.post('/api/chat', async (req, res) => {
   const agent = getOrCreateAgent(req.session);
@@ -46,7 +46,7 @@ app.post('/api/chat', async (req, res) => {
 For multi-agent UIs where several agents share a room:
 
 ```ts
-import { NatsRoom } from 'novaeve-agent';
+import { NatsRoom } from 'medrix-ai';
 
 const room = new NatsRoom({
   url: 'nats://localhost:4222',
@@ -64,14 +64,14 @@ const unsub = await room.subscribe('chat', (msg) => {
 await room.publish('chat', { text: userInput });
 ```
 
-NATS subjects are scoped as `novaeve.room.<roomName>.<subject>`.
+NATS subjects are scoped as `medrix.room.<roomName>.<subject>`.
 
 ### 1.3 REST / RPC pattern (stateless)
 
 For simpler integrations that don't need streaming:
 
 ```ts
-import { Agent } from 'novaeve-agent';
+import { Agent } from 'medrix-ai';
 
 const agent = new Agent({ model: 'gpt-4o-mini', name: 'api' });
 const finalText = await agent.runToText(userMessage);
@@ -116,7 +116,7 @@ await agent.close();                        // disconnect MCP
 ### 2.2 Tool / ToolSet
 
 ```ts
-import { defineTool, ToolSet, z } from 'novaeve-agent';
+import { defineTool, ToolSet, z } from 'medrix-ai';
 
 const myTool = defineTool<{ query: string }, string>({
   name: 'search',
@@ -140,14 +140,14 @@ const ts = new ToolSet('my-tools', [myTool]);
 // ---
 // Instructions injected into the system prompt...
 
-import { FileSkillLoader } from 'novaeve-agent';
+import { FileSkillLoader } from 'medrix-ai';
 const skill = await new FileSkillLoader(['./skills']).load('my-skill');
 ```
 
 ### 2.4 MCP Plugin
 
 ```ts
-import { McpClient } from 'novaeve-agent';
+import { McpClient } from 'medrix-ai';
 
 const plugin = new McpClient('my-server', {
   kind: 'stdio',
@@ -161,7 +161,7 @@ const plugin = new McpClient('my-server', {
 ### 2.5 Team
 
 ```ts
-import { Sequential, CoordinatorTeam } from 'novaeve-agent';
+import { Sequential, CoordinatorTeam } from 'medrix-ai';
 
 // Pipeline: output of agent[i] becomes input of agent[i+1]
 const pipeline = new Sequential([agentA, agentB, agentC], 'my-pipeline');
@@ -176,7 +176,7 @@ const { finalText, perAgent } = await team.runToText(input);
 ### 2.6 Bridge (subprocess interop)
 
 ```ts
-import { runPython } from 'novaeve-agent';
+import { runPython } from 'medrix-ai';
 
 const result = await runPython('my-subcommand', [
   ['--flag', value],
@@ -188,7 +188,7 @@ const result = await runPython('my-subcommand', [
 ### 2.7 Provider
 
 ```ts
-import type { LLMProvider, ProviderStreamChunk } from 'novaeve-agent';
+import type { LLMProvider, ProviderStreamChunk } from 'medrix-ai';
 
 // Implement your own:
 const myProvider: LLMProvider = {
@@ -241,17 +241,17 @@ const myProvider: LLMProvider = {
 ## 4. Project Structure
 
 ```
-Novaeve-Agent/
+MedrixAI/
 ├── src/
 │   ├── agent/          # Agent class + built-in agents + prompts/
 │   │   └── compression/ # MessageCompressor + SummaryCompressor
 │   ├── bridge/         # Python subprocess seam (runPython)
-│   │   └── runtime/    # Bundled Python package (novaeve_bio) + configs + scripts
+│   │   └── runtime/    # Bundled Python package (novaeve_agent) + configs + scripts
 │   ├── chatroom/       # NATS pub/sub Room
 │   ├── cli/            # `novaeve` commander CLI
 │   ├── endpoint/       # McpServerEndpoint + HttpEndpoint (expose agents externally)
 │   ├── evolution/      # Genetic-algorithm code evolution (full)
-│   ├── factory/        # ~/.novaeve/ template manager
+│   ├── factory/        # ~/.medrix/ template manager
 │   ├── gateway/        # Multi-channel gateway (Slack/Telegram/Discord/Lark/WeChat/webhook)
 │   ├── knowledge/      # KnowledgeBase + InMemoryKB (RAG)
 │   ├── mcp/            # McpPlugin + McpClient
@@ -295,9 +295,9 @@ Novaeve-Agent/
 
 - Files: `PascalCase.ts` for classes/interfaces, `camelCase.ts` for pure functions.
 - Tool names: `snake_case` with a domain prefix (`bio_`, `synth_`, `bench_`, `annotate_`).
-- Agent names: `novaeve-<role>` (e.g. `novaeve-selector`).
+- Agent names: `novaeve-<role>` (e.g. `medrix-selector`).
 - Team names: `kebab-case` (e.g. `annotation-pipeline`).
-- Env vars: `NOVAEVE_*` for framework config; `OPENAI_*` / `ANTHROPIC_*` for providers.
+- Env vars: `MEDRIX_*` for framework config; `OPENAI_*` / `ANTHROPIC_*` for providers.
 
 ### Dependencies
 
@@ -327,7 +327,7 @@ Minimal code or CLI command to reproduce.
 ## Environment
 - Node version:
 - OS:
-- Novaeve-Agent version:
+- MedrixAI version:
 ```
 
 ### Labels
@@ -421,10 +421,10 @@ npm run typecheck     # tsc --noEmit (no test execution)
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `NOVAEVE_MODEL` | `gpt-4o-mini` | Default LLM model for CLI / REPL |
-| `NOVAEVE_LOG_LEVEL` | `info` | `debug \| info \| warn \| error` |
-| `NOVAEVE_PYTHON_BIN` | `python` | Python interpreter for the bridge |
-| `NOVAEVE_PYTHON_RUNTIME` | `src/bridge/runtime` | Bridge working directory |
+| `MEDRIX_MODEL` | `gpt-4o-mini` | Default LLM model for CLI / REPL |
+| `MEDRIX_LOG_LEVEL` | `info` | `debug \| info \| warn \| error` |
+| `MEDRIX_PYTHON_BIN` | `python` | Python interpreter for the bridge |
+| `MEDRIX_PYTHON_RUNTIME` | `src/bridge/runtime` | Bridge working directory |
 | `OPENAI_API_KEY` | — | Required for OpenAI provider |
 | `ANTHROPIC_API_KEY` | — | Required for Anthropic provider |
 | `GOOGLE_API_KEY` | — | Required for Gemini provider |
@@ -492,6 +492,6 @@ These are architectural slots left intentionally empty:
 
 - **`src/evolution/`** — genetic-algorithm code evolution. Interface exists; driver is a stub.
 - **Rust bridge backend** — `BridgeOptions` accepts `moduleName` / `cwd` / `pythonBin`; swap for a Rust binary by implementing the same subprocess protocol.
-- **MCP server mode** — expose Novaeve-Agent itself as an MCP server so other tools can call its agents.
+- **MCP server mode** — expose MedrixAI itself as an MCP server so other tools can call its agents.
 - **Persistent memory** — `Memory` interface has `remember/recall`; implement with SQLite, Redis, or vector DB.
 - **UI server** — the `novaeve ui` command is a placeholder; wire it to a Next.js / Vite frontend serving the SSE endpoint above.

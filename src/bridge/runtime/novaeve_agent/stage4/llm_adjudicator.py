@@ -8,9 +8,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from novaeve_bio.io import ensure_dir, write_json
-from novaeve_bio.llm_config import default_llm_model
-from novaeve_bio.stage4.policy import DEFAULT_LLM_MODEL, HIGH_CONSENSUS_MODEL_AGREEMENT, _call_openai_json, _load_env_file
+from novaeve_agent.io import ensure_dir, write_json
+from novaeve_agent.llm_config import default_llm_model
+from novaeve_agent.stage4.policy import DEFAULT_LLM_MODEL, HIGH_CONSENSUS_MODEL_AGREEMENT, _call_openai_json, _load_env_file
 
 
 LLM_ADJUDICATION_METHOD = "llm_low_consistency_adjudication"

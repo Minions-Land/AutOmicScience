@@ -6,11 +6,11 @@ description: Built-in multi-stage single-cell / spatial-transcriptomics annotati
 # Annotation Pipeline
 
 A four-step no-training annotation workflow for single-cell and spatial
-transcriptomics data, built into Novaeve-Agent. Deterministic scientific
+transcriptomics data, built into MedrixAI. Deterministic scientific
 compute (anndata, scanpy, sklearn, torch, scDesign3) runs in the bundled
 Python runtime at `src/bridge/runtime/` and is invoked through the
-Novaeve `bridge/` seam; LLM-driven planning, adapter generation, and
-low-consistency adjudication run as Novaeve `Agent`s.
+MedrixAI `bridge/` seam; LLM-driven planning, adapter generation, and
+low-consistency adjudication run as MedrixAI `Agent`s.
 
 ## Steps
 
@@ -49,20 +49,20 @@ All names live in the core toolsets — no plugin namespace:
 ## Required environment
 
 ```bash
-NOVAEVE_PYTHON_BIN=python                  # default
-NOVAEVE_PYTHON_RUNTIME=src/bridge/runtime  # default: bundled runtime/
+MEDRIX_PYTHON_BIN=python                  # default
+MEDRIX_PYTHON_RUNTIME=src/bridge/runtime  # default: bundled runtime/
 OPENAI_API_KEY=...                         # required when llm-mode != off
 OPENAI_BASE_URL=https://.../v1             # optional gateway override
-NOVAEVE_MODEL=gpt-4o-mini                  # default LLM model id
+MEDRIX_MODEL=gpt-4o-mini                  # default LLM model id
 ```
 
 ## Typical invocation
 
 ```ts
-import { createAnnotationPipeline } from 'novaeve-agent';
+import { createAnnotationPipeline } from 'medrix-ai';
 
 const team = await createAnnotationPipeline({
-  model: process.env.NOVAEVE_MODEL ?? 'gpt-4o-mini',
+  model: process.env.MEDRIX_MODEL ?? 'gpt-4o-mini',
 });
 const result = await team.runToText(JSON.stringify({
   query_profile: 'runs/selection/my_query/query_profile.json',

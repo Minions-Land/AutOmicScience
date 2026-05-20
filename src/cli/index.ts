@@ -14,14 +14,14 @@ import { runPython } from '../bridge/PythonBridge.js';
 import { DevServer } from '../ui/Server.js';
 import { LocalStore } from '../store/LocalStore.js';
 
-// Load env from .env and ~/.novaeve/.env
+// Load env from .env and ~/.medrix/.env
 dotenvConfig();
-dotenvConfig({ path: path.join(os.homedir(), '.novaeve', '.env') });
+dotenvConfig({ path: path.join(os.homedir(), '.medrix', '.env') });
 
 const program = new Command();
 program
-  .name('novaeve')
-  .description('Novaeve-Agent CLI')
+  .name('medrix')
+  .description('MedrixAI CLI')
   .version('0.1.0');
 
 program
@@ -34,24 +34,24 @@ program
       ? new ToolSet('builtin').merge(fileToolSet()).merge(shellToolSet()).merge(webToolSet())
       : new ToolSet('empty');
     const agent = new Agent({
-      name: 'novaeve',
+      name: 'medrix',
       model: opts.model ?? defaultModel(),
       toolset,
       systemPrompt:
-        'You are Novaeve, a helpful multi-tool AI assistant. Use tools when useful.',
+        'You are MedrixAI, a helpful multi-tool AI assistant. Use tools when useful.',
     });
     await new Repl({ agent }).start();
   });
 
 program
   .command('serve')
-  .description('Start the Novaeve UI server.')
+  .description('Start the MedrixAI UI server.')
   .option('-p, --port <port>', 'Port to listen on', '3000')
   .action(async (opts) => {
     const port = parseInt(opts.port, 10);
     const server = new DevServer();
     await server.start(port);
-    console.log(`Novaeve UI server running on http://localhost:${port}`);
+    console.log(`MedrixAI UI server running on http://localhost:${port}`);
     process.on('SIGINT', async () => {
       await server.stop();
       process.exit(0);
@@ -60,27 +60,27 @@ program
 
 program
   .command('setup')
-  .description('Interactive API-key setup. Writes to ~/.novaeve/.env')
+  .description('Interactive API-key setup. Writes to ~/.medrix/.env')
   .action(async () => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const ask = (q: string) =>
       new Promise<string>((resolve) => rl.question(q, (a) => resolve(a.trim())));
 
-    console.log('Novaeve setup. Leave blank to skip a key.');
+    console.log('MedrixAI setup. Leave blank to skip a key.');
     const openai = await ask('OPENAI_API_KEY: ');
     const anthropic = await ask('ANTHROPIC_API_KEY: ');
     const google = await ask('GOOGLE_API_KEY: ');
-    const model = await ask(`NOVAEVE_MODEL [${defaultModel()}]: `);
+    const model = await ask(`MEDRIX_MODEL [${defaultModel()}]: `);
     const nats = await ask('NATS_URL [nats://localhost:4222]: ');
     rl.close();
 
-    const dir = path.join(os.homedir(), '.novaeve');
+    const dir = path.join(os.homedir(), '.medrix');
     await fs.mkdir(dir, { recursive: true });
     const lines: string[] = [];
     if (openai) lines.push(`OPENAI_API_KEY=${openai}`);
     if (anthropic) lines.push(`ANTHROPIC_API_KEY=${anthropic}`);
     if (google) lines.push(`GOOGLE_API_KEY=${google}`);
-    lines.push(`NOVAEVE_MODEL=${model || defaultModel()}`);
+    lines.push(`MEDRIX_MODEL=${model || defaultModel()}`);
     lines.push(`NATS_URL=${nats || 'nats://localhost:4222'}`);
     const envPath = path.join(dir, '.env');
     await fs.writeFile(envPath, lines.join('\n') + '\n');

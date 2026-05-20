@@ -1,4 +1,4 @@
-# Novaeve-Agent
+# MedrixAI
 
 An evolvable, distributed multi-agent framework with a built-in
 bioinformatics annotation pipeline. TypeScript, ESM, Node 20+.
@@ -14,7 +14,7 @@ cp .env.example .env   # fill in OPENAI_API_KEY etc.
 
 ```bash
 npm run cli              # interactive REPL with a default agent
-npm run dev -- setup     # write ~/.novaeve/.env interactively
+npm run dev -- setup     # write ~/.medrix/.env interactively
 npm run dev -- serve     # start UI server on port 3000
 npm test                 # vitest
 npx novaeve annotate ... # built-in annotation pipeline subcommands
@@ -72,7 +72,7 @@ npx novaeve evolve cfg.json  # run evolutionary optimization
 - **`src/repl/`** — readline REPL.
 - **`src/cli/`** — `novaeve` commander CLI (`cli`, `serve`, `setup`,
   `store`, `evolve`, `annotate <subcmd>`).
-- **`src/factory/`** — `~/.novaeve/` template manager.
+- **`src/factory/`** — `~/.medrix/` template manager.
 
 ## Extension seams
 
@@ -99,11 +99,11 @@ are exposed as tools (`bio_*`, `synth_*`, `bench_*`,
 `annotate_*`) so any agent can drive them.
 
 ```ts
-import { createAnnotationPipeline, loadAnnotationPipelineSkill } from 'novaeve-agent';
+import { createAnnotationPipeline, loadAnnotationPipelineSkill } from 'medrix-ai';
 
 const skill = await loadAnnotationPipelineSkill();
 const team = await createAnnotationPipeline({
-  model: process.env.NOVAEVE_MODEL ?? 'gpt-4o-mini',
+  model: process.env.MEDRIX_MODEL ?? 'gpt-4o-mini',
   skills: [skill],
 });
 const { finalText } = await team.runToText(JSON.stringify({
@@ -118,7 +118,7 @@ const { finalText } = await team.runToText(JSON.stringify({
 ## Python runtime
 
 `src/bridge/runtime/` contains the Python scientific compute package
-(`novaeve_bio`) that the bridge invokes via `python -m novaeve_bio <subcommand>`.
+(`novaeve_agent`) that the bridge invokes via `python -m novaeve_agent <subcommand>`.
 This is an implementation detail behind the bridge seam. Replace it with
 another backend at any time by overriding `BridgeOptions.cwd`,
 `pythonBin`, or `moduleName`.

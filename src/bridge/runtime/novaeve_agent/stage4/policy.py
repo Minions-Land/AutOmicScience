@@ -9,9 +9,9 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from novaeve_bio import paths
-from novaeve_bio.io import write_json
-from novaeve_bio.llm_config import build_openai_client, default_llm_model
+from novaeve_agent import paths
+from novaeve_agent.io import write_json
+from novaeve_agent.llm_config import build_openai_client, default_llm_model
 
 
 DEFAULT_ENV_PATH = paths.SCMAS_ROOT / ".env"

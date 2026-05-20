@@ -19,11 +19,11 @@ from sklearn.metrics import accuracy_score, f1_score
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
 
-from novaeve_bio import paths
-from novaeve_bio.embedding_cache import embedding_cache_key, load_embedding_cache, save_embedding_cache
-from novaeve_bio.data.catalog import build_dataset_catalog
-from novaeve_bio.io import ensure_dir, normalize_gene_name, read_json, read_standard_bundle, stratified_indices, write_json
-from novaeve_bio.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
+from novaeve_agent import paths
+from novaeve_agent.embedding_cache import embedding_cache_key, load_embedding_cache, save_embedding_cache
+from novaeve_agent.data.catalog import build_dataset_catalog
+from novaeve_agent.io import ensure_dir, normalize_gene_name, read_json, read_standard_bundle, stratified_indices, write_json
+from novaeve_agent.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
 
 
 FINE_LABEL_CANDIDATES = [
