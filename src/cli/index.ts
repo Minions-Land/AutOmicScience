@@ -11,6 +11,8 @@ import { defaultModel } from '../provider/ModelSelector.js';
 import { fileToolSet, shellToolSet, webToolSet } from '../toolset/BuiltinToolSets.js';
 import { ToolSet } from '../toolset/ToolSet.js';
 import { runPython } from '../bridge/PythonBridge.js';
+import { DevServer } from '../ui/Server.js';
+import { LocalStore } from '../store/LocalStore.js';
 
 // Load env from .env and ~/.novaeve/.env
 dotenvConfig();
@@ -42,10 +44,18 @@ program
   });
 
 program
-  .command('ui')
-  .description('Launch the UI (not yet implemented).')
-  .action(() => {
-    console.log('UI not yet implemented, use cli');
+  .command('serve')
+  .description('Start the Novaeve UI server.')
+  .option('-p, --port <port>', 'Port to listen on', '3000')
+  .action(async (opts) => {
+    const port = parseInt(opts.port, 10);
+    const server = new DevServer();
+    await server.start(port);
+    console.log(`Novaeve UI server running on http://localhost:${port}`);
+    process.on('SIGINT', async () => {
+      await server.stop();
+      process.exit(0);
+    });
   });
 
 program
@@ -77,9 +87,76 @@ program
     console.log(`Wrote ${envPath}`);
   });
 
+// --- Store commands ---
+const store = program
+  .command('store')
+  .description('Manage the Novaeve package store.');
+
+store
+  .command('search <query>')
+  .description('Search the store for agents, skills, tools, or teams.')
+  .action(async (query: string) => {
+    const s = new LocalStore();
+    const results = await s.search(query);
+    if (results.length === 0) {
+      console.log('No results found.');
+      return;
+    }
+    for (const r of results) {
+      console.log(`${r.id} (${r.category}) v${r.version} — ${r.description}`);
+    }
+  });
+
+store
+  .command('install <id>')
+  .description('Install a store entry by id.')
+  .action(async (id: string) => {
+    const s = new LocalStore();
+    await s.install(id);
+    console.log(`Installed: ${id}`);
+  });
+
+store
+  .command('publish <json>')
+  .description('Publish an entry (pass JSON string).')
+  .action(async (json: string) => {
+    const s = new LocalStore();
+    const entry = JSON.parse(json);
+    await s.publish(entry);
+    console.log(`Published: ${entry.id}`);
+  });
+
+store
+  .command('list')
+  .description('List all store entries.')
+  .option('-c, --category <category>', 'Filter by category')
+  .action(async (opts) => {
+    const s = new LocalStore();
+    const entries = await s.list(opts.category);
+    if (entries.length === 0) {
+      console.log('Store is empty.');
+      return;
+    }
+    for (const e of entries) {
+      console.log(`${e.id} (${e.category}) v${e.version} — ${e.description}`);
+    }
+  });
+
+// --- Evolve command ---
+program
+  .command('evolve <config>')
+  .description('Run evolutionary optimization from a config JSON file.')
+  .action(async (configPath: string) => {
+    const raw = await fs.readFile(configPath, 'utf-8');
+    const config = JSON.parse(raw);
+    console.log('Evolution config loaded:', config);
+    console.log('Evolution execution not yet wired — use the Evolver API directly.');
+  });
+
+// --- Annotate commands ---
 const annotate = program
   .command('annotate')
-  .description('Built-in single-cell annotation pipeline (delegates to the vendored bridge).');
+  .description('Built-in single-cell annotation pipeline (delegates to the bridge runtime).');
 
 const ANNOTATE_SUBCOMMANDS: { name: string; summary: string }[] = [
   { name: 'build-label-maps', summary: 'Build SEA-AD label/gene maps' },

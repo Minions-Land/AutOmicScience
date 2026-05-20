@@ -1,6 +1,7 @@
 // Public API barrel.
 export * from './types.js';
 export * from './agent/index.js';
+export * from './agent/compression/index.js';
 export * from './toolset/index.js';
 export * from './skill/index.js';
 export * from './mcp/index.js';
@@ -12,5 +13,13 @@ export * from './evolution/index.js';
 export * from './repl/index.js';
 export * from './factory/index.js';
 export * from './bridge/index.js';
+export * from './ui/index.js';
+export * from './store/index.js';
+export * from './remote/index.js';
+export * from './endpoint/index.js';
+export * from './knowledge/index.js';
+export * from './gateway/index.js';
+export * from './task/index.js';
+export * from './session/index.js';
 export * as schemas from './schemas/index.js';
 export { logger, setLogLevel } from './utils/logger.js';

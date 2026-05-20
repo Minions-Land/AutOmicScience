@@ -7,8 +7,8 @@ description: Built-in multi-stage single-cell / spatial-transcriptomics annotati
 
 A four-step no-training annotation workflow for single-cell and spatial
 transcriptomics data, built into Novaeve-Agent. Deterministic scientific
-compute (anndata, scanpy, sklearn, torch, scDesign3) runs in vendored
-Python under `vendor/python/canchen-mas/` and is invoked through the
+compute (anndata, scanpy, sklearn, torch, scDesign3) runs in the bundled
+Python runtime at `src/bridge/runtime/` and is invoked through the
 Novaeve `bridge/` seam; LLM-driven planning, adapter generation, and
 low-consistency adjudication run as Novaeve `Agent`s.
 
@@ -50,7 +50,7 @@ All names live in the core toolsets — no plugin namespace:
 
 ```bash
 NOVAEVE_PYTHON_BIN=python                  # default
-NOVAEVE_VENDOR_PYTHON=/path/to/canchen-mas # default: bundled vendor/
+NOVAEVE_PYTHON_RUNTIME=src/bridge/runtime  # default: bundled runtime/
 OPENAI_API_KEY=...                         # required when llm-mode != off
 OPENAI_BASE_URL=https://.../v1             # optional gateway override
 NOVAEVE_MODEL=gpt-4o-mini                  # default LLM model id

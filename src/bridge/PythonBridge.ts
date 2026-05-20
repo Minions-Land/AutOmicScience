@@ -6,21 +6,20 @@ import path from 'node:path';
  * Generic Python subprocess bridge.
  *
  * Novaeve-Agent's tools (Bio/Synthetic/Benchmark/AnnotationStage) call into
- * a vendored Python module that owns the heavy scientific compute
+ * the bundled Python runtime that owns the heavy scientific compute
  * (anndata, scanpy, sklearn, torch, R/scDesign3). This file is the single
  * process boundary; everything above it is typed Tool/Agent surface.
  *
- * Swap the vendored module for a Rust binary, MCP server, or pure-TS port
+ * Swap the runtime for a Rust binary, MCP server, or pure-TS port
  * later by reimplementing `runPython()` against a different transport.
  */
 
 export interface BridgeOptions {
   /** Python executable. Default: env NOVAEVE_PYTHON_BIN or `python`. */
   pythonBin?: string;
-  /** Vendor root. Default: env NOVAEVE_VENDOR_PYTHON or the bundled vendor/. */
+  /** Runtime root. Default: env NOVAEVE_PYTHON_RUNTIME or the bundled runtime/. */
   cwd?: string;
-  /** Module name to invoke with `python -m <module>`. Default: `scmas`
-   *  (upstream package id of the vendored source — not exposed to users). */
+  /** Module name to invoke with `python -m <module>`. Default: `novaeve_bio`. */
   moduleName?: string;
   /** Extra env vars merged on top of process.env. */
   env?: NodeJS.ProcessEnv;
@@ -42,15 +41,14 @@ export type CliFlag =
 
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-// src/bridge/ → repo root → vendor/python/canchen-mas
-const VENDORED_DIR = path.resolve(HERE, '..', '..', 'vendor', 'python', 'canchen-mas');
+// src/bridge/ → src/bridge/runtime (the absorbed Python runtime)
+const VENDORED_DIR = path.resolve(HERE, 'runtime');
 
-// Upstream module name of the vendored Python package. Kept private so the
-// public Novaeve surface never carries an upstream identifier.
-const DEFAULT_PYTHON_MODULE = 'scmas';
+// Internal Python module name for the biological compute runtime.
+const DEFAULT_PYTHON_MODULE = 'novaeve_bio';
 
 export function resolveVendorRoot(opt?: BridgeOptions): string {
-  return opt?.cwd ?? process.env.NOVAEVE_VENDOR_PYTHON ?? VENDORED_DIR;
+  return opt?.cwd ?? process.env.NOVAEVE_PYTHON_RUNTIME ?? VENDORED_DIR;
 }
 
 export function resolvePythonBin(opt?: BridgeOptions): string {

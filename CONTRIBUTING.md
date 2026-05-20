@@ -244,25 +244,33 @@ const myProvider: LLMProvider = {
 Novaeve-Agent/
 ├── src/
 │   ├── agent/          # Agent class + built-in agents + prompts/
+│   │   └── compression/ # MessageCompressor + SummaryCompressor
 │   ├── bridge/         # Python subprocess seam (runPython)
+│   │   └── runtime/    # Bundled Python package (novaeve_bio) + configs + scripts
 │   ├── chatroom/       # NATS pub/sub Room
 │   ├── cli/            # `novaeve` commander CLI
-│   ├── evolution/      # Genetic-algorithm code evolution
+│   ├── endpoint/       # McpServerEndpoint + HttpEndpoint (expose agents externally)
+│   ├── evolution/      # Genetic-algorithm code evolution (full)
 │   ├── factory/        # ~/.novaeve/ template manager
+│   ├── gateway/        # Multi-channel gateway (Slack/Telegram/Discord/Lark/WeChat/webhook)
+│   ├── knowledge/      # KnowledgeBase + InMemoryKB (RAG)
 │   ├── mcp/            # McpPlugin + McpClient
 │   ├── memory/         # Memory interface + InMemoryMemory
 │   ├── provider/       # LLMProvider + OpenAI/Anthropic/Gemini adapters
+│   ├── remote/         # RemoteAgent + RemoteWorker (NATS distributed execution)
 │   ├── repl/           # readline REPL
 │   ├── schemas/        # zod schemas for built-in agent outputs
+│   ├── session/        # SessionStore + FileSessionStore (persistence)
 │   ├── skill/          # Skill interface + FileSkillLoader + builtin/
+│   ├── store/          # Store interface + LocalStore (package registry)
+│   ├── task/           # TaskManager + InMemoryTaskManager (background tasks)
 │   ├── team/           # Team patterns (Sequential, Swarm, Coordinator, Pipeline)
-│   ├── toolset/        # Tool/ToolSet + built-in toolsets (file, shell, web, bio, etc.)
+│   ├── toolset/        # Tool/ToolSet + built-in toolsets (file, shell, web, notebook, bio, etc.)
+│   ├── ui/             # UIServer + DevServer + route definitions
 │   ├── utils/          # logger, tokens, misc
 │   ├── types.ts        # shared interfaces (Message, AgentEvent, ToolCall, etc.)
 │   └── index.ts        # public barrel export
 ├── tests/              # vitest — flat, one file per module
-├── vendor/
-│   └── python/canchen-mas/  # vendored Python scientific compute
 ├── package.json
 ├── tsconfig.json
 └── vitest.config.ts
@@ -416,7 +424,7 @@ npm run typecheck     # tsc --noEmit (no test execution)
 | `NOVAEVE_MODEL` | `gpt-4o-mini` | Default LLM model for CLI / REPL |
 | `NOVAEVE_LOG_LEVEL` | `info` | `debug \| info \| warn \| error` |
 | `NOVAEVE_PYTHON_BIN` | `python` | Python interpreter for the bridge |
-| `NOVAEVE_VENDOR_PYTHON` | `vendor/python/canchen-mas` | Bridge working directory |
+| `NOVAEVE_PYTHON_RUNTIME` | `src/bridge/runtime` | Bridge working directory |
 | `OPENAI_API_KEY` | — | Required for OpenAI provider |
 | `ANTHROPIC_API_KEY` | — | Required for Anthropic provider |
 | `GOOGLE_API_KEY` | — | Required for Gemini provider |

@@ -5,3 +5,4 @@ export * from './BioDataTools.js';
 export * from './SyntheticDataTools.js';
 export * from './BenchmarkTools.js';
 export * from './AnnotationStageTools.js';
+export * from './NotebookTools.js';
