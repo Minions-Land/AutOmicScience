@@ -13,20 +13,20 @@ export interface AgentTemplate {
 
 export interface TeamTemplate {
   name: string;
-  pattern: 'sequential' | 'swarm' | 'pantheon';
+  pattern: 'sequential' | 'swarm' | 'coordinator';
   members: string[]; // agent template names
   coordinator?: string;
 }
 
 /**
- * Manages a `~/.pantheon/` directory holding agent/team templates as JSON.
+ * Manages a `~/.novaeve/` directory holding agent/team templates as JSON.
  * Markdown skills can also live alongside under `skills/`.
  */
 export class TemplateManager {
   public readonly root: string;
 
   constructor(root?: string) {
-    this.root = root ?? path.join(os.homedir(), '.pantheon');
+    this.root = root ?? path.join(os.homedir(), '.novaeve');
   }
 
   async init(): Promise<void> {

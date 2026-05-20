@@ -13,7 +13,7 @@ export class Repl {
   async start(): Promise<void> {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const prompt = this.opts.prompt ?? `${this.opts.agent.name}> `;
-    process.stdout.write(`PantheonOS-ts REPL. Type 'exit' or Ctrl-D to quit.\n`);
+    process.stdout.write(`Novaeve-Agent REPL. Type 'exit' or Ctrl-D to quit.\n`);
     rl.setPrompt(prompt);
     rl.prompt();
     rl.on('line', async (line) => {

@@ -1,9 +1,17 @@
 import { z } from 'zod';
-import { defineTool } from '../../../toolset/Tool.js';
-import { ToolSet } from '../../../toolset/ToolSet.js';
-import { runScmas, type BridgeOptions } from './PythonBridge.js';
+import { defineTool } from './Tool.js';
+import { ToolSet } from './ToolSet.js';
+import { runPython, type BridgeOptions, type CliFlag } from '../bridge/PythonBridge.js';
 
-type Flag = string | [string, string | number | boolean | null | undefined];
+/**
+ * Annotation-pipeline orchestration tools.
+ *
+ * These wrap the deterministic Python entry points for query profiling,
+ * source/model selection, execution planning, adapter+execute, and
+ * cross-model consensus. The LLM portions of selection/adaptation/
+ * adjudication are also exposed here so an LLM-driven Novaeve Agent can
+ * call them directly. The Python subprocess is the source of truth.
+ */
 
 const ProfileQueryArgs = z.object({
   datasetId: z.string().min(1),
@@ -14,7 +22,7 @@ const ProfileQueryArgs = z.object({
 });
 type ProfileQueryArgs = z.infer<typeof ProfileQueryArgs>;
 
-const SelectModelsArgs = z.object({
+const SelectSourcesArgs = z.object({
   queryProfile: z.string().min(1),
   outputDir: z.string().optional(),
   artifactBundle: z.string().optional(),
@@ -41,9 +49,9 @@ const SelectModelsArgs = z.object({
   excludedModels: z.array(z.string()).default([]),
   seed: z.number().int().default(3028),
 });
-type SelectModelsArgs = z.infer<typeof SelectModelsArgs>;
+type SelectSourcesArgs = z.infer<typeof SelectSourcesArgs>;
 
-const RunCrossSpeciesPlanArgs = z.object({
+const RunPlanArgs = z.object({
   plan: z.string().min(1),
   outputDir: z.string().optional(),
   maxQueryCells: z.number().int().nonnegative().default(0),
@@ -53,14 +61,14 @@ const RunCrossSpeciesPlanArgs = z.object({
   device: z.string().optional(),
   batchSize: z.number().int().nonnegative().default(0),
 });
-type RunCrossSpeciesPlanArgs = z.infer<typeof RunCrossSpeciesPlanArgs>;
+type RunPlanArgs = z.infer<typeof RunPlanArgs>;
 
-const InspectModelContractsArgs = z.object({
+const InspectContractsArgs = z.object({
   capabilityDir: z.string().optional(),
   registry: z.string().optional(),
   outputDir: z.string().optional(),
 });
-type InspectModelContractsArgs = z.infer<typeof InspectModelContractsArgs>;
+type InspectContractsArgs = z.infer<typeof InspectContractsArgs>;
 
 const AdaptAndExecuteArgs = z.object({
   plan: z.string().min(1),
@@ -76,8 +84,8 @@ const AdaptAndExecuteArgs = z.object({
 });
 type AdaptAndExecuteArgs = z.infer<typeof AdaptAndExecuteArgs>;
 
-const RunConsensusArgs = z.object({
-  stage3Summary: z.string().min(1),
+const ConsensusArgs = z.object({
+  executionSummary: z.string().min(1),
   mode: z.enum(['subset', 'full']).default('subset'),
   outputDir: z.string().optional(),
   seed: z.number().int().default(3028),
@@ -91,22 +99,16 @@ const RunConsensusArgs = z.object({
   executionStrategy: z.enum(['selected_only', 'benchmark_all']).default('selected_only'),
   maxProbeCells: z.number().int().positive().default(5000),
 });
-type RunConsensusArgs = z.infer<typeof RunConsensusArgs>;
+type ConsensusArgs = z.infer<typeof ConsensusArgs>;
 
-/**
- * Pipeline orchestration entry points: profile-query, select-models,
- * inspect-model-contracts, adapt-and-execute, run-consensus,
- * run-cross-species-plan. The deterministic Python implementation is the
- * source of truth.
- */
-export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
-  return new ToolSet('scmas-stages', [
+export function annotationStageToolSet(opt: BridgeOptions = {}): ToolSet {
+  return new ToolSet('annotation-stage', [
     defineTool<ProfileQueryArgs, unknown>({
-      name: 'scmas_profile_query',
-      description: 'Stage-2 prerequisite: build a query profile for selection.',
+      name: 'annotate_profile_query',
+      description: 'Build a query profile for downstream source/model selection.',
       parameters: ProfileQueryArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'profile-query',
           [
             ['--dataset-id', a.datasetId],
@@ -118,12 +120,12 @@ export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
           opt,
         ),
     }),
-    defineTool<SelectModelsArgs, unknown>({
-      name: 'scmas_select_models',
-      description: 'Stage-2: select no-training source+model pairs for a profiled query.',
-      parameters: SelectModelsArgs,
+    defineTool<SelectSourcesArgs, unknown>({
+      name: 'annotate_select_sources',
+      description: 'Select no-training source+model pairs for a profiled query dataset.',
+      parameters: SelectSourcesArgs,
       execute: async (a) => {
-        const flags: Flag[] = [
+        const flags: CliFlag[] = [
           ['--query-profile', a.queryProfile],
           ['--output-dir', a.outputDir],
           ['--artifact-bundle', a.artifactBundle],
@@ -148,15 +150,15 @@ export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
           ['--seed', a.seed],
         ];
         for (const m of a.excludedModels) flags.push(['--exclude-model', m]);
-        return runScmas('select-models', flags, opt);
+        return runPython('select-models', flags, opt);
       },
     }),
-    defineTool<RunCrossSpeciesPlanArgs, unknown>({
-      name: 'scmas_run_cross_species_plan',
-      description: 'Run subset no-training execution from selected_execution_plan.yaml.',
-      parameters: RunCrossSpeciesPlanArgs,
+    defineTool<RunPlanArgs, unknown>({
+      name: 'annotate_run_plan',
+      description: 'Run subset no-training execution from a selected execution plan.',
+      parameters: RunPlanArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'run-cross-species-plan',
           [
             ['--plan', a.plan],
@@ -171,12 +173,12 @@ export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
           opt,
         ),
     }),
-    defineTool<InspectModelContractsArgs, unknown>({
-      name: 'scmas_inspect_model_contracts',
-      description: 'Inspect capability YAML, registry artifacts, and wrapper signatures.',
-      parameters: InspectModelContractsArgs,
+    defineTool<InspectContractsArgs, unknown>({
+      name: 'annotate_inspect_contracts',
+      description: 'Inspect capability cards, registry artifacts, and wrapper signatures.',
+      parameters: InspectContractsArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'inspect-model-contracts',
           [
             ['--capability-dir', a.capabilityDir],
@@ -187,11 +189,11 @@ export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
         ),
     }),
     defineTool<AdaptAndExecuteArgs, unknown>({
-      name: 'scmas_adapt_and_execute',
-      description: 'Stage-3: adapter spec generation and whitelist execution.',
+      name: 'annotate_adapt_and_execute',
+      description: 'Generate adapter specs and execute the whitelist plan.',
       parameters: AdaptAndExecuteArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'adapt-and-execute',
           [
             ['--plan', a.plan],
@@ -208,15 +210,15 @@ export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
           opt,
         ),
     }),
-    defineTool<RunConsensusArgs, unknown>({
-      name: 'scmas_run_consensus',
-      description: 'Stage-4: reference-enhanced consensus fusion from a stage-3 summary.',
-      parameters: RunConsensusArgs,
+    defineTool<ConsensusArgs, unknown>({
+      name: 'annotate_run_consensus',
+      description: 'Reference-enhanced consensus fusion across all completed adapters.',
+      parameters: ConsensusArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'run-consensus',
           [
-            ['--stage3-summary', a.stage3Summary],
+            ['--stage3-summary', a.executionSummary],
             ['--mode', a.mode],
             ['--output-dir', a.outputDir],
             ['--seed', a.seed],
@@ -234,4 +236,9 @@ export function stageToolSet(opt: BridgeOptions = {}): ToolSet {
         ),
     }),
   ]);
+}
+
+/** Union of every annotation-pipeline toolset useful to one agent. */
+export function annotationToolSet(opt: BridgeOptions = {}): ToolSet {
+  return new ToolSet('annotation').merge(annotationStageToolSet(opt));
 }

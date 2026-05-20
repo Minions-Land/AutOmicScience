@@ -22,7 +22,7 @@ export class NatsRoom extends Room {
   }
 
   private subjectFor(subject: string): string {
-    return `pantheon.room.${this.name}.${subject}`;
+    return `novaeve.room.${this.name}.${subject}`;
   }
 
   private async ensure(): Promise<void> {

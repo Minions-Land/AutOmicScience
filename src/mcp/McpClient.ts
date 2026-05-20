@@ -7,7 +7,7 @@ export type McpTransport =
   | { kind: 'sse'; url: string; headers?: Record<string, string> };
 
 /**
- * Wraps an MCP server (stdio or SSE) and exposes its tools as Pantheon `Tool`s.
+ * Wraps an MCP server (stdio or SSE) and exposes its tools as Novaeve `Tool`s.
  * Uses `@modelcontextprotocol/sdk` under the hood. Imports are lazy so the SDK
  * is optional at install time.
  */
@@ -43,7 +43,7 @@ export class McpClient implements McpPlugin {
       } as any);
     }
     this.client = new Client(
-      { name: `pantheon-ts:${this.name}`, version: '0.1.0' },
+      { name: `novaeve-agent:${this.name}`, version: '0.1.0' },
       { capabilities: {} },
     );
     await this.client.connect(this.transportInst);

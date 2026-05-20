@@ -1,19 +1,23 @@
 import { z } from 'zod';
-import { defineTool } from '../../../toolset/Tool.js';
-import { ToolSet } from '../../../toolset/ToolSet.js';
-import { runScmas, type BridgeOptions } from './PythonBridge.js';
+import { defineTool } from './Tool.js';
+import { ToolSet } from './ToolSet.js';
+import { runPython, type BridgeOptions, type CliFlag } from '../bridge/PythonBridge.js';
 
-type Flag = string | [string, string | number | boolean | null | undefined];
+/**
+ * Benchmark + label-transfer tooling: build benchmark NPZs, run the model
+ * registry, smoke-test no-training label transfer, and run the UCE 33L IMA
+ * label-transfer flow. All deterministic — no LLM.
+ */
 
-const PrepareEvalDatasetsArgs = z.object({
+const PrepareBenchmarkDatasetsArgs = z.object({
   outputDir: z.string().optional(),
   noNewSynthetic: z.boolean().default(false),
   maxCells: z.number().int().nonnegative().default(0),
   seed: z.number().int().default(3028),
 });
-type PrepareEvalDatasetsArgs = z.infer<typeof PrepareEvalDatasetsArgs>;
+type PrepareBenchmarkDatasetsArgs = z.infer<typeof PrepareBenchmarkDatasetsArgs>;
 
-const RawLabelTransferSmokeArgs = z.object({
+const LabelTransferSmokeArgs = z.object({
   outputDir: z.string().optional(),
   syntheticRoot: z.string().optional(),
   sources: z.array(z.string()).default([]),
@@ -28,7 +32,7 @@ const RawLabelTransferSmokeArgs = z.object({
   seed: z.number().int().default(3028),
   includeExistingSeaad: z.boolean().default(false),
 });
-type RawLabelTransferSmokeArgs = z.infer<typeof RawLabelTransferSmokeArgs>;
+type LabelTransferSmokeArgs = z.infer<typeof LabelTransferSmokeArgs>;
 
 const EvaluateArgs = z.object({
   outputDir: z.string().optional(),
@@ -46,7 +50,7 @@ const EvaluateArgs = z.object({
 });
 type EvaluateArgs = z.infer<typeof EvaluateArgs>;
 
-const RunUceImaTransferArgs = z.object({
+const UceLabelTransferArgs = z.object({
   datasetId: z.string().min(1),
   queryPath: z.string().min(1),
   outputDir: z.string().min(1),
@@ -63,20 +67,16 @@ const RunUceImaTransferArgs = z.object({
   seed: z.number().int().default(3028),
   rebuildReferenceCache: z.boolean().default(false),
 });
-type RunUceImaTransferArgs = z.infer<typeof RunUceImaTransferArgs>;
+type UceLabelTransferArgs = z.infer<typeof UceLabelTransferArgs>;
 
-/**
- * Stage-1 evaluation, label transfer smoke, eval-dataset prep, and the
- * UCE 33L IMA label-transfer entry point. All deterministic; no LLM.
- */
-export function evalToolSet(opt: BridgeOptions = {}): ToolSet {
-  return new ToolSet('scmas-eval', [
-    defineTool<PrepareEvalDatasetsArgs, unknown>({
-      name: 'scmas_prepare_eval_datasets',
+export function benchmarkToolSet(opt: BridgeOptions = {}): ToolSet {
+  return new ToolSet('benchmark', [
+    defineTool<PrepareBenchmarkDatasetsArgs, unknown>({
+      name: 'bench_prepare_datasets',
       description: 'Convert benchmark inputs to model-specific SEA-AD 140-gene NPZs.',
-      parameters: PrepareEvalDatasetsArgs,
+      parameters: PrepareBenchmarkDatasetsArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'prepare-eval-datasets',
           [
             ['--output-dir', a.outputDir],
@@ -87,12 +87,12 @@ export function evalToolSet(opt: BridgeOptions = {}): ToolSet {
           opt,
         ),
     }),
-    defineTool<RawLabelTransferSmokeArgs, unknown>({
-      name: 'scmas_raw_label_transfer_smoke',
-      description: 'No-training label transfer over new scDesign3 variants.',
-      parameters: RawLabelTransferSmokeArgs,
+    defineTool<LabelTransferSmokeArgs, unknown>({
+      name: 'bench_label_transfer_smoke',
+      description: 'No-training label transfer over synthetic variants.',
+      parameters: LabelTransferSmokeArgs,
       execute: async (a) => {
-        const flags: Flag[] = [
+        const flags: CliFlag[] = [
           ['--output-dir', a.outputDir],
           ['--synthetic-root', a.syntheticRoot],
           ['--max-reference-cells', a.maxReferenceCells],
@@ -107,15 +107,15 @@ export function evalToolSet(opt: BridgeOptions = {}): ToolSet {
         for (const s of a.sources) flags.push(['--source', s]);
         for (const v of a.variants) flags.push(['--variant', v]);
         for (const m of a.methods) flags.push(['--method', m]);
-        return runScmas('raw-label-transfer-smoke', flags, opt);
+        return runPython('raw-label-transfer-smoke', flags, opt);
       },
     }),
     defineTool<EvaluateArgs, unknown>({
-      name: 'scmas_evaluate',
+      name: 'bench_evaluate',
       description: 'Run the model registry over prepared real/synthetic datasets.',
       parameters: EvaluateArgs,
       execute: async (a) => {
-        const flags: Flag[] = [
+        const flags: CliFlag[] = [
           ['--output-dir', a.outputDir],
           ['--registry', a.registry],
           ['--dataset-manifest', a.datasetManifest],
@@ -129,15 +129,15 @@ export function evalToolSet(opt: BridgeOptions = {}): ToolSet {
         ];
         for (const m of a.models) flags.push(['--model', m]);
         for (const d of a.datasets) flags.push(['--dataset', d]);
-        return runScmas('evaluate', flags, opt);
+        return runPython('evaluate', flags, opt);
       },
     }),
-    defineTool<RunUceImaTransferArgs, unknown>({
-      name: 'scmas_run_uce_ima_transfer',
+    defineTool<UceLabelTransferArgs, unknown>({
+      name: 'bench_uce_label_transfer',
       description: 'Run UCE 33L query embeddings against the IMA embedding reference.',
-      parameters: RunUceImaTransferArgs,
+      parameters: UceLabelTransferArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'run-uce-ima-transfer',
           [
             ['--dataset-id', a.datasetId],

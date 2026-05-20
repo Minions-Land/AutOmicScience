@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { buildScmasArgv } from '../../src/plugins/scmas/tools/PythonBridge.js';
+import { buildPythonArgv } from '../src/bridge/PythonBridge.js';
 
-describe('scmas PythonBridge', () => {
+describe('PythonBridge.buildPythonArgv', () => {
   it('skips null/undefined/empty values', () => {
-    const argv = buildScmasArgv('select-models', [
+    const argv = buildPythonArgv('scmas', 'select-models', [
       ['--query-profile', 'q.json'],
       ['--output-dir', undefined],
       ['--seed', null],
@@ -14,7 +14,7 @@ describe('scmas PythonBridge', () => {
   });
 
   it('includes boolean flags only when true', () => {
-    const argv = buildScmasArgv('prepare-sources', [
+    const argv = buildPythonArgv('scmas', 'prepare-sources', [
       ['--include-smartseq', true],
       ['--include-seaad-reference', false],
     ]);
@@ -22,7 +22,7 @@ describe('scmas PythonBridge', () => {
   });
 
   it('treats string entries as positional args', () => {
-    const argv = buildScmasArgv('foo', ['raw', '--bar']);
+    const argv = buildPythonArgv('scmas', 'foo', ['raw', '--bar']);
     expect(argv).toEqual(['-m', 'scmas', 'foo', 'raw', '--bar']);
   });
 });

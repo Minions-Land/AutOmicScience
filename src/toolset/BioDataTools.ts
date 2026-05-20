@@ -1,9 +1,13 @@
 import { z } from 'zod';
-import { defineTool } from '../../../toolset/Tool.js';
-import { ToolSet } from '../../../toolset/ToolSet.js';
-import { runScmas, type BridgeOptions } from './PythonBridge.js';
+import { defineTool } from './Tool.js';
+import { ToolSet } from './ToolSet.js';
+import { runPython, type BridgeOptions, type CliFlag } from '../bridge/PythonBridge.js';
 
-type Flag = string | [string, string | number | boolean | null | undefined];
+/**
+ * Single-cell data preparation tools: reference assembly, label maps,
+ * source bundling, dataset catalogs. All deterministic — no LLM. Each tool
+ * spawns a Python subprocess via the bridge.
+ */
 
 const BuildLabelMapsArgs = z.object({ force: z.boolean().default(false) });
 type BuildLabelMapsArgs = z.infer<typeof BuildLabelMapsArgs>;
@@ -42,23 +46,20 @@ const BuildDatasetCatalogArgs = z.object({
 });
 type BuildDatasetCatalogArgs = z.infer<typeof BuildDatasetCatalogArgs>;
 
-/**
- * Wrappers around the deterministic data-prep subcommands of `python -m scmas ...`.
- */
-export function dataToolSet(opt: BridgeOptions = {}): ToolSet {
-  return new ToolSet('scmas-data', [
+export function bioDataToolSet(opt: BridgeOptions = {}): ToolSet {
+  return new ToolSet('bio-data', [
     defineTool<BuildLabelMapsArgs, unknown>({
-      name: 'scmas_build_label_maps',
+      name: 'bio_build_label_maps',
       description: 'Build SEA-AD label/gene maps (deterministic).',
       parameters: BuildLabelMapsArgs,
-      execute: async ({ force }) => runScmas('build-label-maps', [['--force', force]], opt),
+      execute: async ({ force }) => runPython('build-label-maps', [['--force', force]], opt),
     }),
     defineTool<BuildReferenceArgs, unknown>({
-      name: 'scmas_build_reference',
+      name: 'bio_build_reference',
       description: 'Build merged human/mouse reference h5ad and SEA-AD real test h5ad.',
       parameters: BuildReferenceArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'build-reference',
           [
             ['--max-cells-per-source', a.maxCellsPerSource],
@@ -72,11 +73,11 @@ export function dataToolSet(opt: BridgeOptions = {}): ToolSet {
         ),
     }),
     defineTool<BuildSeaadTestArgs, unknown>({
-      name: 'scmas_build_seaad_test',
+      name: 'bio_build_seaad_test',
       description: 'Build SEA-AD MERFISH held-out donor test h5ad only.',
       parameters: BuildSeaadTestArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'build-seaad-test',
           [
             ['--max-cells', a.maxCells],
@@ -87,11 +88,11 @@ export function dataToolSet(opt: BridgeOptions = {}): ToolSet {
         ),
     }),
     defineTool<PrepareSourcesArgs, unknown>({
-      name: 'scmas_prepare_sources',
-      description: 'Prepare standard bundles used as scDesign3 source data.',
+      name: 'bio_prepare_sources',
+      description: 'Prepare standard reference bundles for downstream synthesis and benchmarking.',
       parameters: PrepareSourcesArgs,
       execute: async (a) => {
-        const flags: Flag[] = [
+        const flags: CliFlag[] = [
           ['--max-cells-per-source', a.maxCellsPerSource],
           ['--seed', a.seed],
           ['--max-genes-per-source', a.maxGenesPerSource],
@@ -100,15 +101,15 @@ export function dataToolSet(opt: BridgeOptions = {}): ToolSet {
           ['--output-root', a.outputRoot],
         ];
         for (const s of a.sources) flags.push(['--source', s]);
-        return runScmas('prepare-sources', flags, opt);
+        return runPython('prepare-sources', flags, opt);
       },
     }),
     defineTool<BuildDatasetCatalogArgs, unknown>({
-      name: 'scmas_build_dataset_catalog',
-      description: 'Write a dataset role/source table for stage-1 planning and smoke runs.',
+      name: 'bio_build_dataset_catalog',
+      description: 'Write a dataset role/source catalog for planning and smoke runs.',
       parameters: BuildDatasetCatalogArgs,
       execute: async (a) =>
-        runScmas(
+        runPython(
           'build-dataset-catalog',
           [
             ['--output-dir', a.outputDir],

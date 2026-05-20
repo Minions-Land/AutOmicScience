@@ -1,12 +1,12 @@
 {
-  "name": "pantheon-ts",
+  "name": "novaeve-agent",
   "version": "0.1.0",
-  "description": "TypeScript rewrite of PantheonOS — an evolvable, distributed multi-agent framework.",
+  "description": "Novaeve-Agent — an evolvable, distributed multi-agent framework with a built-in bioinformatics annotation pipeline.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "pantheon-ts": "dist/cli/index.js"
+    "novaeve": "dist/cli/index.js"
   },
   "exports": {
     ".": "./dist/index.js"

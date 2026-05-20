@@ -11,4 +11,6 @@ export * from './chatroom/index.js';
 export * from './evolution/index.js';
 export * from './repl/index.js';
 export * from './factory/index.js';
+export * from './bridge/index.js';
+export * as schemas from './schemas/index.js';
 export { logger, setLogLevel } from './utils/logger.js';

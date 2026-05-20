@@ -3,16 +3,16 @@ import { Agent } from '../agent/Agent.js';
 import type { AgentEvent } from '../types.js';
 
 /**
- * PantheonTeam: a coordinator agent that delegates to specialist members.
+ * CoordinatorTeam: a coordinator agent that delegates to specialist members.
  * The coordinator sees member descriptions and decides how to route work.
- * This is a minimal implementation: it asks the coordinator to produce a
- * routing plan, then runs the chosen members in sequence.
+ * Minimal implementation: ask the coordinator to produce a routing plan,
+ * then run the chosen members in sequence.
  */
-export class PantheonTeam extends Team {
+export class CoordinatorTeam extends Team {
   public readonly name: string;
   private readonly coordinator: Agent;
 
-  constructor(coordinator: Agent, members: Agent[], name = 'pantheon') {
+  constructor(coordinator: Agent, members: Agent[], name = 'coordinator') {
     super(members);
     this.coordinator = coordinator;
     this.name = name;
