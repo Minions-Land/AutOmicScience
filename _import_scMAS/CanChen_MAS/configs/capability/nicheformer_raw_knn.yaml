@@ -1,0 +1,273 @@
+model_id: nicheformer_raw_knn
+version: 0.1.0
+supported_tasks:
+- annotation
+stage1_status: not_included_in_clean_repo
+modalities:
+- single-cell transcriptomics
+- spatial transcriptomics
+species_scope:
+- human
+- mouse
+tissue_scope:
+- brain
+- broad
+input_requirements:
+  required_formats:
+  - standard_bundle
+  - h5ad
+  - npz
+  required_fields:
+  - X
+  - gene symbols
+  - native_label
+  gene_contract: source-specific gene panel; execution aligns shared genes only
+  label_contract:
+  - fine/native label
+  - coarse label when available
+output_contract:
+  primary_outputs:
+  - predictions.csv
+  - metrics.csv
+  score_fields:
+  - macro_f1
+  - accuracy
+  - weighted_f1
+compute_requirements:
+  preferred_device: gpu
+  minimum_memory: 16GB
+stage1_evaluation:
+  artifact_bundle: artifacts/stage1_full
+  score_table_csv: artifacts/stage1_full/scores/full_model_variant_scores.csv
+  score_table_md: artifacts/stage1_full/scores/full_model_variant_scores.md
+  skip_table_csv: artifacts/stage1_full/scores/full_model_variant_skips.csv
+  evaluation_modes:
+  - raw_label_transfer_no_training
+  max_eval_cells: 20000
+  source_dataset_score_formula: composite_score = 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; weights are renormalized if a component is missing.
+  source_dataset_scores:
+  - source_group: allen_mouse_reference_03390dd0
+    status: scored
+    score_available: true
+    composite_score: 0.179639
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.188911
+    mean_macro_f1: 0.100982
+    baseline_macro_f1_mean: 0.187061
+    variant_macro_f1_mean: 0.079462
+    robustness_ratio_mean: 0.42451
+    accuracy_mean: 0.4366
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 500
+    n_reference_cells_max: 1000
+    source_description:
+      description: mouse prepared source `allen_mouse_reference_03390dd0` used as a scDesign3 synthetic benchmark source; 50000 cells, 542 genes.
+      species: mouse
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/allen_mouse_reference_03390dd0
+      n_obs: 50000
+      n_vars: 542
+  - source_group: allen_mouse_reference_bf8cb800
+    status: scored
+    score_available: true
+    composite_score: 0.48309
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.614666
+    mean_macro_f1: 0.380322
+    baseline_macro_f1_mean: 0.610544
+    variant_macro_f1_mean: 0.322766
+    robustness_ratio_mean: 0.528259
+    accuracy_mean: 0.6385
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 374
+    n_reference_cells_max: 1000
+    source_description:
+      description: mouse prepared source `allen_mouse_reference_bf8cb800` used as a scDesign3 synthetic benchmark source; 50000 cells, 108 genes.
+      species: mouse
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/allen_mouse_reference_bf8cb800
+      n_obs: 50000
+      n_vars: 108
+  - source_group: allen_mouse_reference_e63beb9b
+    status: scored
+    score_available: true
+    composite_score: 0.581647
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.671466
+    mean_macro_f1: 0.493083
+    baseline_macro_f1_mean: 0.670805
+    variant_macro_f1_mean: 0.448653
+    robustness_ratio_mean: 0.668825
+    accuracy_mean: 0.72578
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 500
+    n_reference_cells_max: 1000
+    source_description:
+      description: mouse prepared source `allen_mouse_reference_e63beb9b` used as a scDesign3 synthetic benchmark source; 50000 cells, 480 genes.
+      species: mouse
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/allen_mouse_reference_e63beb9b
+      n_obs: 50000
+      n_vars: 480
+  - source_group: allen_mouse_reference_fbe9c55e
+    status: scored
+    score_available: true
+    composite_score: 0.305047
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.407964
+    mean_macro_f1: 0.208757
+    baseline_macro_f1_mean: 0.402964
+    variant_macro_f1_mean: 0.160205
+    robustness_ratio_mean: 0.397542
+    accuracy_mean: 0.488435
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 374
+    n_reference_cells_max: 1000
+    source_description:
+      description: mouse prepared source `allen_mouse_reference_fbe9c55e` used as a scDesign3 synthetic benchmark source; 50000 cells, 108 genes.
+      species: mouse
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/allen_mouse_reference_fbe9c55e
+      n_obs: 50000
+      n_vars: 108
+  - source_group: spinal_gse190442
+    status: scored
+    score_available: true
+    composite_score: 0.256269
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.146084
+    mean_macro_f1: 0.133271
+    baseline_macro_f1_mean: 0.138067
+    variant_macro_f1_mean: 0.132072
+    robustness_ratio_mean: 0.942064
+    accuracy_mean: 0.42083
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 500
+    n_reference_cells_max: 1000
+    source_description:
+      description: human prepared source `spinal_gse190442` used as a scDesign3 synthetic benchmark source; 50000 cells, 535 genes.
+      species: human
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/spinal_gse190442
+      n_obs: 50000
+      n_vars: 535
+  - source_group: seaad_anchor_140gene
+    status: scored
+    score_available: true
+    composite_score: 0.346054
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.407795
+    mean_macro_f1: 0.23691
+    baseline_macro_f1_mean: 0.248594
+    variant_macro_f1_mean: 0.233989
+    robustness_ratio_mean: 0.937271
+    accuracy_mean: 0.30022
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 140
+    n_reference_cells_max: 1000
+    source_description:
+      description: Existing SEA-AD MERFISH 140-gene synthetic anchor variants from the scDesign3 pipeline.
+      species: human
+      role: existing_synthetic_benchmark
+      source_path: data/prepared_sources/seaad_anchor_140gene
+      n_obs: null
+      n_vars: 140
+  - source_group: human_whole_brain_whb_10xv3_nonneurons_log2
+    status: scored
+    score_available: true
+    composite_score: 0.282337
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.335645
+    mean_macro_f1: 0.166788
+    baseline_macro_f1_mean: 0.177224
+    variant_macro_f1_mean: 0.16418
+    robustness_ratio_mean: 0.912764
+    accuracy_mean: 0.41486
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 20000
+    n_shared_genes_max: 536
+    n_reference_cells_max: 5000
+    source_description:
+      description: human prepared source `human_whole_brain_whb_10xv3_nonneurons_log2` used as a scDesign3 synthetic benchmark source; 50000 cells, 536 genes.
+      species: human
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/human_whole_brain_whb_10xv3_nonneurons_log2
+      n_obs: 50000
+      n_vars: 536
+  - source_group: mouse_whole_brain_wmb_10xv3_isocortex_2_log2
+    status: scored
+    score_available: true
+    composite_score: 0.276715
+    score_formula: 0.45*baseline_macro_f1_mean + 0.40*variant_macro_f1_mean + 0.15*robustness_ratio_mean; renormalized when a component is missing
+    best_macro_f1: 0.298461
+    mean_macro_f1: 0.161793
+    baseline_macro_f1_mean: 0.176544
+    variant_macro_f1_mean: 0.158105
+    robustness_ratio_mean: 0.89352
+    accuracy_mean: 0.454844
+    rows: 10
+    skip_rows: 0
+    skip_reasons: []
+    n_eval_cells_max: 19944
+    n_shared_genes_max: 547
+    n_reference_cells_max: 5000
+    source_description:
+      description: mouse prepared source `mouse_whole_brain_wmb_10xv3_isocortex_2_log2` used as a scDesign3 synthetic benchmark source; 50000 cells, 547 genes.
+      species: mouse
+      role: scdesign3_generated_synthetic_benchmark
+      source_path: data/prepared_sources/mouse_whole_brain_wmb_10xv3_isocortex_2_log2
+      n_obs: 50000
+      n_vars: 547
+  skip_summary: {}
+  status: source_scores_restored_artifacts_excluded
+  note: Source-disaggregated Stage-1 capability values are retained for routing and fusion; raw score tables, reports, run directories, and dataset files are not distributed in this clean repository.
+display_name: Nicheformer raw backbone kNN label transfer
+provider: foundation-model
+family: nicheformer
+evaluator: raw_label_transfer
+dependencies:
+- pytorch
+- anndata
+- numpy
+artifacts:
+  checkpoint:
+    path: ${CANCHEN_MAS_NICHEFORMER_DIR}/nicheformer.ckpt
+    required: true
+  vocab_h5ad:
+    path: ${CANCHEN_MAS_NICHEFORMER_DIR}/model.h5ad
+    required: true
+  gene_map:
+    path: ${CANCHEN_MAS_NICHEFORMER_DIR}/gene_name_id_dict_gc104M.pkl
+    required: true
+executor_defaults:
+  embedding_method: nicheformer_raw
+  transfer_method: knn
+  evaluation_mode: raw_label_transfer_no_training
+  min_shared_genes: 30
+  max_reference_cells: 1000
+  k: 15
+data_constraints:
+  compatible_contract: source_gene_panel_label_transfer
+  supports_sparse_matrix: true
+  requires_reference: true
+  supports_spatial: true

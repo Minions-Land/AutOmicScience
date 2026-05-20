@@ -37,3 +37,10 @@ npm test
 1. **Tools** — implement the `Tool` interface or use `@tool('description')`.
 2. **Skills** — implement `Skill` or load a markdown skill file via `SkillLoader`.
 3. **MCP** — implement `McpPlugin` or use `McpClient` to wrap a stdio/SSE MCP server.
+
+## Bundled plugins
+
+- `src/plugins/scmas` — multi-stage single-cell annotation pipeline ported from
+  CanChen_MAS. Tools wrap the vendored Python source under `_import_scMAS/`;
+  Stage 2/3/4 LLM stages run as PantheonOS-ts agents. CLI: `pantheon-ts scmas <subcmd>`.
+  See `src/plugins/scmas/README.md`.

@@ -1,0 +1,38 @@
+[project]
+name = "canchen-mas"
+version = "0.1.0"
+description = "CanChen_MAS: a multi-stage single-cell annotation system with foundation-model routing."
+requires-python = ">=3.10"
+dependencies = [
+  "anndata",
+  "numpy",
+  "pandas",
+  "pyyaml",
+  "scipy",
+  "scikit-learn",
+  "joblib",
+]
+
+[project.optional-dependencies]
+llm = [
+  "openai>=1.0",
+  "httpx>=0.27",
+  "python-dotenv>=1.0",
+]
+test = [
+  "pytest",
+]
+foundation = [
+  "torch>=2.4",
+  "transformers>=4.40",
+  "safetensors>=0.4",
+  "scanpy>=1.10",
+]
+
+[project.scripts]
+canchen-mas = "scmas.cli:main"
+scmas = "scmas.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

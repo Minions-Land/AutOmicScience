@@ -10,6 +10,7 @@ import { Repl } from '../repl/Repl.js';
 import { defaultModel } from '../provider/ModelSelector.js';
 import { fileToolSet, shellToolSet, webToolSet } from '../toolset/BuiltinToolSets.js';
 import { ToolSet } from '../toolset/ToolSet.js';
+import { registerScmasCli } from '../plugins/scmas/cli.js';
 
 // Load env from .env and ~/.pantheon/.env
 dotenvConfig();
@@ -75,6 +76,8 @@ program
     await fs.writeFile(envPath, lines.join('\n') + '\n');
     console.log(`Wrote ${envPath}`);
   });
+
+registerScmasCli(program);
 
 program.parseAsync(process.argv).catch((err) => {
   console.error(err);

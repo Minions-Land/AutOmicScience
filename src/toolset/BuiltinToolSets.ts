@@ -9,13 +9,13 @@ export function fileToolSet(rootDir: string = process.cwd()): ToolSet {
   const resolve = (p: string) => path.resolve(rootDir, p);
 
   return new ToolSet('file', [
-    defineTool({
+    defineTool<{ path: string }, string>({
       name: 'read_file',
       description: 'Read a UTF-8 text file from the workspace.',
       parameters: z.object({ path: z.string() }),
       execute: async ({ path: p }) => fs.readFile(resolve(p), 'utf8'),
     }),
-    defineTool({
+    defineTool<{ path: string; content: string }, { ok: boolean; path: string }>({
       name: 'write_file',
       description: 'Write a UTF-8 text file to the workspace (overwrites).',
       parameters: z.object({ path: z.string(), content: z.string() }),
@@ -26,7 +26,7 @@ export function fileToolSet(rootDir: string = process.cwd()): ToolSet {
         return { ok: true, path: full };
       },
     }),
-    defineTool({
+    defineTool<{ path: string }, string[]>({
       name: 'list_dir',
       description: 'List entries of a directory.',
       parameters: z.object({ path: z.string().default('.') }),
@@ -37,7 +37,10 @@ export function fileToolSet(rootDir: string = process.cwd()): ToolSet {
 
 export function shellToolSet(): ToolSet {
   return new ToolSet('shell', [
-    defineTool({
+    defineTool<
+      { command: string; cwd?: string; timeoutMs: number },
+      { stdout: string; stderr: string; exitCode: number }
+    >({
       name: 'shell_exec',
       description: 'Run a shell command and return stdout/stderr/exitCode.',
       parameters: z.object({
@@ -64,7 +67,7 @@ export function shellToolSet(): ToolSet {
 
 export function webToolSet(): ToolSet {
   return new ToolSet('web', [
-    defineTool({
+    defineTool<{ url: string }, { status: number; body: string }>({
       name: 'http_get',
       description: 'HTTP GET a URL and return text content.',
       parameters: z.object({ url: z.string().url() }),
@@ -78,7 +81,7 @@ export function webToolSet(): ToolSet {
 
 export function codeToolSet(): ToolSet {
   return new ToolSet('code', [
-    defineTool({
+    defineTool<{ code: string }, { result: unknown }>({
       name: 'eval_js',
       description: 'Evaluate a JavaScript expression in a sandboxed function (NOT secure).',
       parameters: z.object({ code: z.string() }),

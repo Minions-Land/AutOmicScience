@@ -1,0 +1,35 @@
+seaad_merfish:
+  test_donors:
+    - H20.33.001
+    - H21.33.040
+    - H20.33.015
+    - H20.33.004
+  drop_feature_prefixes:
+    - Blank-
+  label_columns:
+    class: Class
+    subclass: Subclass
+    supertype: Supertype
+
+source_pool:
+  include_by_default:
+    - seaad_merfish_reference_donors
+    - allen_mouse_reference
+    - human_whole_brain
+    - mouse_whole_brain
+    - spinal_gse190442
+    - spinal_gse103892
+  heavy_opt_in:
+    - allen_human_multiple_cortical_areas_smartseq
+
+generation:
+  smoke_cells_per_source: 10000
+  full_cells_per_source: 100000
+  default_variants:
+    - baseline
+    - signal80
+    - rare0p5pct
+  optional_variants_when_batch_available:
+    - virtual_batch
+    - missing_celltypes
+  synthetic_output_root: data/synthetic

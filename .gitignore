@@ -8,3 +8,7 @@ coverage/
 .vscode/
 .idea/
 *.tsbuildinfo
+
+# Vendored Python source archive — the unpacked _import_scMAS/ tree is committed.
+*.tar.zst
+*.tar.gz

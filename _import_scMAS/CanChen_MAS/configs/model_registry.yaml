@@ -1,0 +1,43 @@
+models:
+  - model_id: sklearn_lr
+    family: sklearn
+    evaluator: sklearn_pkl
+    checkpoint_dir: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/sklearn_baselines/lr/SEA_AD_MTP_ST/checkpoints
+    compatible_contract: seaad_140_npz
+
+  - model_id: sklearn_svm
+    family: sklearn
+    evaluator: sklearn_pkl
+    checkpoint_dir: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/sklearn_baselines/svm/SEA_AD_MTP_ST/checkpoints
+    compatible_contract: seaad_140_npz
+
+  - model_id: sklearn_xgboost
+    family: sklearn
+    evaluator: sklearn_pkl
+    checkpoint_dir: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/sklearn_baselines/xgboost/SEA_AD_MTP_ST/checkpoints
+    compatible_contract: seaad_140_npz
+
+  - model_id: scanvi_class
+    family: scanvi
+    evaluator: scanvi_saved
+    checkpoint_dir: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/scANVI/SEA_AD_MTP_ST/checkpoints/s3028/scanvi_class
+    compatible_contract: seaad_140_npz
+    supported_tasks: [class]
+
+  - model_id: spatial_gnn
+    family: spatial_gnn
+    evaluator: spatial_gnn
+    checkpoint: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/spatial_gnn/SEA_AD_MTP_ST/checkpoints/k15_gcn2_h256_z128_s3028/best_model.pth
+    compatible_contract: seaad_140_npz
+    output_num: [3, 24, 137]
+    k_neighbors: 15
+    n_gcn_layers: 2
+    hidden_dim: 256
+    latent_dim: 128
+    dropout: 0.3
+
+  - model_id: reference_supervised_transfer
+    family: reference_transfer
+    evaluator: postprocessor
+    entrypoint: vendor/foundation_model_based_mas/experiments/reference_supervised_transfer/main.py
+    compatible_contract: shared_predictions
