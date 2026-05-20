@@ -1,14 +1,43 @@
+# Node.js
 node_modules/
 dist/
+*.tsbuildinfo
+coverage/
+*.log
+
+# Environment & secrets
 .env
 .env.local
-*.log
+.env.*.local
+
+# OS / editor
 .DS_Store
-coverage/
 .vscode/
 .idea/
-*.tsbuildinfo
+*.swp
+
+# Python (bridge runtime)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+uv.lock
+
+# Build artifacts
+build/
+*.egg
+.eggs/
 
 # Compressed archives
 *.tar.zst
 *.tar.gz
+*.zip
+
+# MedrixAI runtime data (per-user, not project)
+.medrix-shared/

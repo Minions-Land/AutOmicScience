@@ -43,7 +43,8 @@ MedrixAI is a **TypeScript-native, distributed multi-agent framework** that brin
 
 | | |
 | :--- | :--- |
-| 📦 | `npm install` |
+| 📦 | `npm install` (TypeScript framework) |
+| 🐍 | `cd src/bridge/runtime && uv pip install -e .` (optional Python compute backend) |
 | 🪄 | `npx medrix setup` — interactive wizard for API keys + default model |
 | 💬 | `npx medrix cli` — interactive REPL with slash commands |
 | 🚀 | `npx medrix serve` — HTTP/SSE endpoint on port 4000 |
@@ -51,34 +52,89 @@ MedrixAI is a **TypeScript-native, distributed multi-agent framework** that brin
 
 ## `3` Installation
 
-### From Source
+MedrixAI is a hybrid TypeScript + Python project:
+
+- **TypeScript layer** (the framework itself) — managed by `npm` / `pnpm` / `bun`
+- **Python bridge** (scientific compute backend) — optional, managed by [`uv`](https://github.com/astral-sh/uv)
+
+### Step 1 — Clone
 
 ```bash
 git clone https://github.com/Minions-Land/MedrixAI.git
 cd MedrixAI
-npm install
-cp .env.example .env   # fill in at least one API key
-npm test               # verify everything works
 ```
 
-### Optional Native Dependencies
-
-Some toolsets dynamically load optional packages — install only what you need:
+### Step 2 — Install Node dependencies
 
 ```bash
-npm install ws                # NATS WebSocket / Slack Socket Mode / Discord gateway
-npm install better-sqlite3    # SQLite database tool
-npm install pg                # PostgreSQL database tool
-npm install sharp             # image resizing in vision utilities
-npm install gpt-tokenizer     # accurate BPE token counting
+npm install                    # or: pnpm install / bun install
+cp .env.example .env           # fill in at least one API key
+npm test                       # verify (vitest)
+npm run typecheck              # tsc --noEmit
 ```
 
-### Python Bridge (for scientific compute)
+`node_modules/` is intentionally gitignored — every contributor regenerates it from `package.json` + `package-lock.json`. Standard Node convention.
 
-The bridge at `src/bridge/runtime/` runs Python for `anndata`, `scanpy`, `scikit-learn`, `torch`, and R/scDesign3 workflows. Install once:
+### Step 3 — Install Python bridge (optional but recommended)
+
+The bridge at `src/bridge/runtime/` runs Python for `anndata`, `scanpy`, `scikit-learn`, `torch`, R/scDesign3, Jupyter kernels, and the scFM adapters. Use `uv` — it's 10-100× faster than pip and handles virtualenvs automatically.
 
 ```bash
-pip install -e src/bridge/runtime/
+# Install uv (one-time, if not already installed)
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Install the bridge
+cd src/bridge/runtime
+uv venv                                    # create .venv/
+uv pip install -e .                        # core: anndata, numpy, pandas, sklearn
+
+# Optional extras (pick what you need)
+uv pip install -e ".[llm]"                 # OpenAI client for in-bridge LLM calls
+uv pip install -e ".[foundation]"          # torch + transformers (scFM models)
+uv pip install -e ".[notebook]"            # jupyter-client + ipykernel (real Jupyter kernels)
+uv pip install -e ".[r]"                   # rpy2 (R interpreter; requires R installed)
+uv pip install -e ".[test]"                # pytest
+
+# Or: install everything in one shot
+uv pip install -e ".[llm,foundation,notebook,test]"
+cd ../../..
+```
+
+Tell MedrixAI where the bridge venv lives (so `runPython()` finds the right interpreter):
+
+```bash
+export MEDRIX_PYTHON_BIN="$(pwd)/src/bridge/runtime/.venv/bin/python"
+# Or add to your shell rc file. On Windows: src\bridge\runtime\.venv\Scripts\python.exe
+```
+
+### Step 4 — Configure providers
+
+```bash
+npx medrix setup
+```
+
+The interactive wizard auto-detects existing env vars, prompts for any missing API keys (OpenAI / Anthropic / Gemini), validates each key with a live API call, and writes `~/.medrix/.env` atomically.
+
+### Step 5 — Run
+
+```bash
+npx medrix cli                 # interactive REPL
+npx medrix serve               # HTTP/SSE endpoint on port 4000
+```
+
+### Optional Node Native Dependencies
+
+Some toolsets dynamically load optional packages — install only what you actually use:
+
+```bash
+npm install ws                 # NATS WebSocket / Slack Socket Mode / Discord gateway
+npm install better-sqlite3     # SQLite database tool
+npm install pg                 # PostgreSQL database tool
+npm install sharp              # image resizing in vision utilities
+npm install gpt-tokenizer      # accurate BPE token counting
 ```
 
 ## `4` Usage

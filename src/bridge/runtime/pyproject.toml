@@ -1,7 +1,7 @@
 [project]
-name = "novaeve-agent"
+name = "medrixai-bridge"
 version = "0.1.0"
-description = "Novaeve biological compute runtime — single-cell annotation pipeline."
+description = "MedrixAI Python bridge runtime — scientific compute backend for the TypeScript framework. Provides single-cell annotation, scFM adapters, and bioinformatics workflows."
 requires-python = ">=3.10"
 dependencies = [
   "anndata",
@@ -28,10 +28,25 @@ foundation = [
   "safetensors>=0.4",
   "scanpy>=1.10",
 ]
+notebook = [
+  "jupyter-client>=8.0",
+  "ipykernel>=6.0",
+]
+r = [
+  "rpy2>=3.5",
+]
 
 [project.scripts]
-novaeve-agent = "novaeve_agent.cli:main"
+medrixai-bridge = "novaeve_agent.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["novaeve_agent*"]
