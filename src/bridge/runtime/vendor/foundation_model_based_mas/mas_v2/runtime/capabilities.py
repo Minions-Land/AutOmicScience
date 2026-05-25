@@ -11,16 +11,16 @@ from mas_v2.contracts.schemas import ReferenceAssetPackage, RunProfile
 
 
 PROJECT_ROOT = Path(
-    os.environ.get("CANCHEN_MAS_FOUNDATION_MAS_ROOT", Path(__file__).resolve().parents[2])
+    os.environ.get("AOS_MAS_FOUNDATION_MAS_ROOT", Path(__file__).resolve().parents[2])
 ).expanduser().resolve()
 CHECKPOINT_ROOT = Path(
-    os.environ.get("CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT", PROJECT_ROOT / "checkpoints" / "foundation_models")
+    os.environ.get("AOS_MAS_FOUNDATION_CHECKPOINT_ROOT", PROJECT_ROOT / "checkpoints" / "foundation_models")
 ).expanduser().resolve()
-CAPABILITY_DIR = Path(os.environ.get("CANCHEN_MAS_VENDOR_CAPABILITY_DIR", PROJECT_ROOT / "config" / "capability"))
-GF_CODE_DIR = Path(os.environ.get("CANCHEN_MAS_GENEFORMER_CODE_DIR", CHECKPOINT_ROOT / "geneformer" / "Geneformer_code_only"))
-GF_WEIGHTS = Path(os.environ.get("CANCHEN_MAS_GENEFORMER_WEIGHTS", CHECKPOINT_ROOT / "geneformer" / "model.safetensors"))
-NICHEFORMER_DIR = Path(os.environ.get("CANCHEN_MAS_NICHEFORMER_DIR", CHECKPOINT_ROOT / "nicheformer"))
-SCGPT_CHECKPOINT_ROOT = Path(os.environ.get("CANCHEN_MAS_SCGPT_DIR", CHECKPOINT_ROOT / "scgpt"))
+CAPABILITY_DIR = Path(os.environ.get("AOS_MAS_VENDOR_CAPABILITY_DIR", PROJECT_ROOT / "config" / "capability"))
+GF_CODE_DIR = Path(os.environ.get("AOS_MAS_GENEFORMER_CODE_DIR", CHECKPOINT_ROOT / "geneformer" / "Geneformer_code_only"))
+GF_WEIGHTS = Path(os.environ.get("AOS_MAS_GENEFORMER_WEIGHTS", CHECKPOINT_ROOT / "geneformer" / "model.safetensors"))
+NICHEFORMER_DIR = Path(os.environ.get("AOS_MAS_NICHEFORMER_DIR", CHECKPOINT_ROOT / "nicheformer"))
+SCGPT_CHECKPOINT_ROOT = Path(os.environ.get("AOS_MAS_SCGPT_DIR", CHECKPOINT_ROOT / "scgpt"))
 
 
 def load_capability_registry(capability_dir: str | Path = CAPABILITY_DIR) -> dict[str, dict[str, Any]]:

@@ -40,7 +40,7 @@ export interface PackageManifest {
  * Manages installed packages (agents, tools, skills from the store).
  *
  * Features:
- * - Package discovery from ~/.medrix/packages/
+ * - Package discovery from ~/.aos/packages/
  * - Runtime context for package execution
  * - Package isolation (each package gets its own context)
  * - Dependency resolution between packages
@@ -51,7 +51,7 @@ export class PackageManager {
   private loaded = false;
 
   constructor(packagesPath?: string) {
-    this.packagesPath = packagesPath ?? join(homedir(), '.medrix', 'packages');
+    this.packagesPath = packagesPath ?? join(homedir(), '.aos', 'packages');
   }
 
   /** Discover all packages in the packages directory. */

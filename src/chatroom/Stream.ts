@@ -54,7 +54,7 @@ export class NatsStream implements MessageStream {
   }
 
   private subject(): string {
-    return `medrix.room.${this.roomName}.stream.${this.agentName}`;
+    return `aos.room.${this.roomName}.stream.${this.agentName}`;
   }
 
   get connected(): boolean {
@@ -236,7 +236,7 @@ export class NatsStreamAdapter {
   /** Publish a message to a chat stream. */
   async publish(chatId: string, messageType: string, data: Record<string, unknown>): Promise<void> {
     if (!this.nc) return;
-    const subject = `medrix.chat.${chatId}.stream`;
+    const subject = `aos.chat.${chatId}.stream`;
     const payload: StreamMessage = {
       type: 'chat',
       sessionId: `chat_${chatId}`,

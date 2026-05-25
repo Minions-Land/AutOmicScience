@@ -1,8 +1,9 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createConnection } from 'node:net';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync, unlinkSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { which } from '../utils/which.js';
 
 // --- Types ---
@@ -81,6 +82,42 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function executableName(name: string): string {
+  return process.platform === 'win32' && !name.endsWith('.exe') ? `${name}.exe` : name;
+}
+
+function isRunnableFile(candidate: string | undefined): candidate is string {
+  if (!candidate) return false;
+  try {
+    return statSync(candidate).isFile();
+  } catch {
+    return false;
+  }
+}
+
+function bundledNatsCandidates(): string[] {
+  const binary = executableName('nats-server');
+  const platformArch = `${process.platform}-${process.arch}`;
+  const moduleDir = dirname(fileURLToPath(import.meta.url));
+  const roots = Array.from(new Set([
+    process.cwd(),
+    resolve(moduleDir, '..'),
+    resolve(moduleDir, '..', '..'),
+  ]));
+  const relativeCandidates = [
+    join('vendor', 'nats-server', platformArch, binary),
+    join('vendor', 'nats-server', binary),
+    join('tools', 'nats-server', platformArch, binary),
+    join('tools', 'nats-server', binary),
+    join('bin', binary),
+  ];
+  return roots.flatMap((root) => relativeCandidates.map((candidate) => resolve(root, candidate)));
+}
+
+function findBundledNatsServer(): string | null {
+  return bundledNatsCandidates().find(isRunnableFile) ?? null;
+}
+
 // --- NatsManager ---
 
 /**
@@ -110,25 +147,35 @@ export class NatsManager {
     this.wsPort = opts?.wsPort ?? 8080;
     this.httpPort = opts?.httpPort ?? 8222;
     this.workDir = opts?.workDir ?? process.cwd();
-    this.dataDir = opts?.dataDir ?? join(homedir(), '.medrix');
+    this.dataDir = opts?.dataDir ?? join(homedir(), '.aos');
     this.instanceFile = join(this.dataDir, '.nats-instance.json');
   }
 
   // --- Binary Detection ---
 
   checkBinaryAvailable(): { available: boolean; path: string } {
+    if (isRunnableFile(process.env.AOS_NATS_SERVER)) {
+      return { available: true, path: process.env.AOS_NATS_SERVER };
+    }
+
     const binary = which('nats-server');
     if (binary) {
       return { available: true, path: binary };
     }
+
+    const bundled = findBundledNatsServer();
+    if (bundled) {
+      return { available: true, path: bundled };
+    }
+
     return {
       available: false,
       path:
         'nats-server binary not found.\n\n' +
-        'Installation options:\n' +
-        '1. Via Go: go install github.com/nats-io/nats-server/v2@latest\n' +
-        '2. Via Homebrew (macOS): brew install nats-server\n' +
-        '3. Via Docker: docker run -p 4222:4222 -p 8080:8080 nats:alpine',
+        'AutOmicScience looks for:\n' +
+        '1. AOS_NATS_SERVER\n' +
+        '2. nats-server on PATH\n' +
+        '3. vendor/nats-server/<platform>-<arch>/nats-server',
     };
   }
 
@@ -166,8 +213,8 @@ export class NatsManager {
     mkdirSync(jetstreamDir, { recursive: true });
 
     const config = `
-# MedrixAI NATS Server Configuration (auto-generated)
-server_name: medrix-nats-local
+# AutOmicScience NATS Server Configuration (auto-generated)
+server_name: aos-nats-local
 
 listen: 0.0.0.0:${this.tcpPort}
 

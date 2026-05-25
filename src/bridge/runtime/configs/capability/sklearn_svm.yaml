@@ -257,7 +257,7 @@ dependencies:
 - joblib
 artifacts:
   checkpoint_dir:
-    path: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/sklearn_baselines/svm/SEA_AD_MTP_ST/checkpoints
+    path: ${AOS_MAS_FOUNDATION_CHECKPOINT_ROOT}/sklearn_baselines/svm/SEA_AD_MTP_ST/checkpoints
     required: false
 data_constraints:
   compatible_contract: seaad_140_npz

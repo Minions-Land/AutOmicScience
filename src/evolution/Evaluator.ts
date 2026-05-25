@@ -57,7 +57,7 @@ export class SandboxEvaluator implements Evaluator {
       workspaceBase?: string;
     } = {},
   ) {
-    this.workspaceBase = options.workspaceBase ?? join(tmpdir(), 'medrix-eval');
+    this.workspaceBase = options.workspaceBase ?? join(tmpdir(), 'aos-eval');
     mkdirSync(this.workspaceBase, { recursive: true });
   }
 

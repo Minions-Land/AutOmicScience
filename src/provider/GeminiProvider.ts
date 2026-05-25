@@ -60,6 +60,11 @@ export class GeminiProvider implements LLMProvider {
 
     const calls: { id: string; name: string; arguments: Record<string, unknown> }[] = [];
     for await (const chunk of result.stream) {
+      if (options.signal?.aborted) {
+        const err = new Error('The operation was aborted');
+        err.name = 'AbortError';
+        throw err;
+      }
       const text = typeof chunk.text === 'function' ? chunk.text() : '';
       if (text) yield { type: 'text', text };
       const fnCalls = chunk.functionCalls?.() ?? [];

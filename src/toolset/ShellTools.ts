@@ -9,6 +9,8 @@ import path from 'node:path';
 import { z } from 'zod';
 import { defineTool } from './Tool.js';
 import { ToolSet } from './ToolSet.js';
+import { PermissionManager } from '../permissions/index.js';
+import type { PermissionManagerOptions } from '../permissions/index.js';
 
 /** Commands that are never allowed regardless of configuration. */
 const BLOCKED_PATTERNS = [
@@ -36,6 +38,9 @@ export interface ShellToolsOptions {
   allowlist?: string[];
   /** Optional blocklist of command prefixes (checked after allowlist). */
   blocklist?: string[];
+  /** Optional shared permission manager for AutOmicScience tool permission checks. */
+  permissionManager?: PermissionManager;
+  permissions?: PermissionManagerOptions;
 }
 
 export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
@@ -67,6 +72,9 @@ export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
       { stdout: string; stderr: string; exitCode: number }
     >({
       name: 'execute_command',
+      aliases: ['bash', 'shell', 'powershell'],
+      operation: 'execute',
+      maxResultSizeChars: 80_000,
       description:
         'Execute a shell command. Returns stdout, stderr, and exit code. ' +
         'Supports timeout, working directory, and environment variables.',
@@ -85,12 +93,14 @@ export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
           .optional()
           .describe('Additional environment variables'),
       }),
-      execute: async ({ command, cwd, timeoutMs, env }) => {
+      getCommand: ({ command }) => command,
+      isReadOnly: ({ command }) => isReadOnlyCommand(command),
+      isDestructive: ({ command }) => isDestructiveCommand(command),
+      validateInput: ({ command }) => {
         const denial = checkPermission(command);
-        if (denial) {
-          return { stdout: '', stderr: denial, exitCode: 126 };
-        }
-
+        if (denial) return { ok: false, message: denial, errorCode: 'shell_blocked' };
+      },
+      execute: async ({ command, cwd, timeoutMs, env }, ctx) => {
         const effectiveCwd = cwd ? path.resolve(defaultCwd, cwd) : defaultCwd;
         const effectiveTimeout = Math.min(timeoutMs ?? 30_000, maxTimeout);
         const effectiveEnv = { ...process.env, ...defaultEnv, ...env };
@@ -114,6 +124,10 @@ export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
 
           child.stdout.on('data', (b) => (stdout += b.toString()));
           child.stderr.on('data', (b) => (stderr += b.toString()));
+          ctx.signal?.addEventListener('abort', () => {
+            killed = true;
+            child.kill('SIGTERM');
+          }, { once: true });
 
           child.on('close', (code) => {
             clearTimeout(timer);
@@ -136,6 +150,8 @@ export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
       { stdout: string; stderr: string; exitCode: number }
     >({
       name: 'execute_script',
+      operation: 'execute',
+      maxResultSizeChars: 80_000,
       description: 'Execute a script file (bash, python, etc.) with optional arguments.',
       parameters: z.object({
         scriptPath: z.string().describe('Path to the script file'),
@@ -149,7 +165,10 @@ export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
           .optional()
           .describe('Timeout in milliseconds'),
       }),
-      execute: async ({ scriptPath, args, cwd, timeoutMs }) => {
+      getPath: ({ scriptPath }) => path.resolve(defaultCwd, scriptPath),
+      isReadOnly: () => false,
+      isDestructive: () => false,
+      execute: async ({ scriptPath, args, cwd, timeoutMs }, ctx) => {
         const resolvedScript = path.resolve(defaultCwd, scriptPath);
         const effectiveCwd = cwd ? path.resolve(defaultCwd, cwd) : defaultCwd;
         const effectiveTimeout = Math.min(timeoutMs ?? 60_000, maxTimeout);
@@ -182,8 +201,25 @@ export function shellToolSet(opts: ShellToolsOptions = {}): ToolSet {
               });
             }
           });
+          ctx.signal?.addEventListener('abort', () => child.kill('SIGTERM'), { once: true });
         });
       },
     }),
-  ]);
+  ], {
+    permissionManager: opts.permissionManager,
+    permissions: opts.permissions,
+  });
+}
+
+function isReadOnlyCommand(command: string): boolean {
+  const first = command.trim().split(/\s+/)[0]?.toLowerCase() ?? '';
+  return [
+    'cat', 'type', 'dir', 'ls', 'pwd', 'echo', 'rg', 'grep', 'find', 'git', 'npm', 'node',
+    'python', 'python3', 'where', 'which', 'Get-ChildItem'.toLowerCase(), 'Get-Content'.toLowerCase(),
+  ].includes(first);
+}
+
+function isDestructiveCommand(command: string): boolean {
+  const normalized = command.toLowerCase();
+  return /\b(rm|del|erase|remove-item|rmdir|rd|git\s+reset|git\s+clean|format|mkfs|shutdown|reboot)\b/.test(normalized);
 }

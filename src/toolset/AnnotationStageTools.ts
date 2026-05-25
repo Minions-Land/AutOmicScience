@@ -9,7 +9,7 @@ import { runPython, type BridgeOptions, type CliFlag } from '../bridge/PythonBri
  * These wrap the deterministic Python entry points for query profiling,
  * source/model selection, execution planning, adapter+execute, and
  * cross-model consensus. The LLM portions of selection/adaptation/
- * adjudication are also exposed here so an LLM-driven Novaeve Agent can
+ * adjudication are also exposed here so an LLM-driven AutOmicScience Agent can
  * call them directly. The Python subprocess is the source of truth.
  */
 
@@ -47,6 +47,7 @@ const SelectSourcesArgs = z.object({
     .default('unified_rank'),
   iterativeExcludeScope: z.enum(['model', 'family']).default('family'),
   excludedModels: z.array(z.string()).default([]),
+  includeDefaultExcluded: z.boolean().default(false),
   seed: z.number().int().default(3028),
 });
 type SelectSourcesArgs = z.infer<typeof SelectSourcesArgs>;
@@ -147,6 +148,7 @@ export function annotationStageToolSet(opt: BridgeOptions = {}): ToolSet {
           ['--selection-strategy', a.selectionStrategy],
           ['--selection-objective', a.selectionObjective],
           ['--iterative-exclude-scope', a.iterativeExcludeScope],
+          ['--include-default-excluded', a.includeDefaultExcluded],
           ['--seed', a.seed],
         ];
         for (const m of a.excludedModels) flags.push(['--exclude-model', m]);

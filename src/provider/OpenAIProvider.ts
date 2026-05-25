@@ -26,8 +26,8 @@ export class OpenAIProvider implements LLMProvider {
     const mod: any = await import('openai');
     const OpenAI = mod.default ?? mod.OpenAI;
     this.client = new OpenAI({
-      apiKey: this.opts.apiKey ?? process.env.OPENAI_API_KEY,
-      baseURL: this.opts.baseURL,
+      apiKey: this.opts.apiKey ?? process.env.AOS_OPENAI_API_KEY ?? process.env.OPENAI_API_KEY,
+      baseURL: this.opts.baseURL ?? openAICompatibleBaseURL(),
     });
     return this.client;
   }
@@ -44,7 +44,7 @@ export class OpenAIProvider implements LLMProvider {
       temperature: options.temperature,
       max_tokens: options.maxTokens,
       stream: true,
-    });
+    }, options.signal ? { signal: options.signal } : undefined);
 
     // Aggregate tool-call deltas by index.
     const toolBuf: Map<number, { id: string; name: string; argText: string }> = new Map();
@@ -83,6 +83,16 @@ export class OpenAIProvider implements LLMProvider {
 
     yield { type: 'done', finishReason };
   }
+}
+
+function openAICompatibleBaseURL(): string | undefined {
+  const raw =
+    process.env.AOS_OPENAI_BASE_URL ??
+    process.env.OPENAI_BASE_URL ??
+    process.env.NEWAPI_BASE_URL;
+  if (!raw) return undefined;
+  const trimmed = raw.trim().replace(/\/+$/, '');
+  return trimmed.endsWith('/v1') ? trimmed : `${trimmed}/v1`;
 }
 
 function toOpenAIMessage(m: Message): any {

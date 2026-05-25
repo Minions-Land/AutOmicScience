@@ -87,11 +87,11 @@ export class NatsThread implements Thread {
   }
 
   private subject(): string {
-    return `medrix.room.${this.roomName}.thread.${this.id}`;
+    return `aos.room.${this.roomName}.thread.${this.id}`;
   }
 
   private controlSubject(): string {
-    return `medrix.room.${this.roomName}.thread.${this.id}.control`;
+    return `aos.room.${this.roomName}.thread.${this.id}.control`;
   }
 
   // --- Lifecycle ---

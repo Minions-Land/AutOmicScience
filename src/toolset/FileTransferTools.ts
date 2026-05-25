@@ -2,8 +2,8 @@
  * FileTransferTools — Send and receive files between agents via shared storage.
  *
  * The shared-file registry is persisted as JSON at
- *   ~/.medrix/file-transfer/registry.json
- * (override with env MEDRIX_FILE_TRANSFER_REGISTRY).
+ *   ~/.aos/file-transfer/registry.json
+ * (override with env AOS_FILE_TRANSFER_REGISTRY).
  *
  * Writes go through a temp-file + rename to make concurrent writers safe on
  * POSIX filesystems. This makes cross-process file transfer work without
@@ -42,15 +42,15 @@ interface RegistryShape {
 
 function defaultRegistryPath(): string {
   return (
-    process.env.MEDRIX_FILE_TRANSFER_REGISTRY ??
-    path.join(os.homedir(), '.medrix', 'file-transfer', 'registry.json')
+    process.env.AOS_FILE_TRANSFER_REGISTRY ??
+    path.join(os.homedir(), '.aos', 'file-transfer', 'registry.json')
   );
 }
 
 function defaultSharedDir(): string {
   return path.resolve(
-    process.env.MEDRIX_SHARED_DIR ??
-      path.join(os.homedir(), '.medrix', 'file-transfer', 'shared'),
+    process.env.AOS_SHARED_DIR ??
+      path.join(os.homedir(), '.aos', 'file-transfer', 'shared'),
   );
 }
 

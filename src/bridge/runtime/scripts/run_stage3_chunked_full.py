@@ -16,8 +16,8 @@ import pandas as pd
 import yaml
 from sklearn.metrics import accuracy_score, f1_score
 
-from novaeve_agent.io import ensure_dir, write_json
-from novaeve_agent.stage2.selector import run_cross_species_plan
+from aos_agent.io import ensure_dir, write_json
+from aos_agent.stage2.selector import run_cross_species_plan
 
 
 def _read_yaml(path: str | Path) -> dict[str, Any]:
@@ -447,7 +447,7 @@ def run_model(args: argparse.Namespace) -> dict[str, Any]:
     )
     devices = [item.strip() for item in args.devices.split(",") if item.strip()]
     if not devices:
-        raise ValueError("--devices must contain at least one CUDA device, e.g. cuda:0,cuda:1")
+        raise ValueError("--devices must contain at least one CUDA device, e.g. cuda:1")
 
     chunk_run_root = ensure_dir(output_dir / "prepared_inputs" / args.model_id / "chunk_runs")
     tasks = []
@@ -534,7 +534,7 @@ def main() -> None:
     parser.add_argument("--plan", required=True)
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--model-id", required=True)
-    parser.add_argument("--devices", default="cuda:0,cuda:1,cuda:2,cuda:3")
+    parser.add_argument("--devices", default="cuda:1,cuda:2,cuda:3")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--chunk-size", type=int, default=20000)
     parser.add_argument("--batch-size", type=int, default=64)

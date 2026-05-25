@@ -129,7 +129,7 @@ export class MCPToolProvider implements ToolProvider {
     const { Client } = await import('@modelcontextprotocol/sdk/client/index.js');
     const { SSEClientTransport } = await import('@modelcontextprotocol/sdk/client/sse.js');
     const transport = new SSEClientTransport(new URL(this.uri));
-    this.client = new Client({ name: 'medrix-mcp', version: '1.0.0' }, { capabilities: {} });
+    this.client = new Client({ name: 'aos-mcp', version: '1.0.0' }, { capabilities: {} });
     await this.client.connect(transport);
   }
 

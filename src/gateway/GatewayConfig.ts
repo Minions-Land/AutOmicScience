@@ -49,7 +49,7 @@ function maskSecret(value: unknown): string {
 }
 
 function defaultConfigPath(): string {
-  return join(homedir(), '.medrix', 'gateway', 'config.json');
+  return join(homedir(), '.aos', 'gateway', 'config.json');
 }
 
 export function channelConfigured(channel: ChannelType, cfg: Record<string, any>): boolean {

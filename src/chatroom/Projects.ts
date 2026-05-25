@@ -14,7 +14,7 @@ export interface ProjectInfo {
 export interface ProjectListEntry extends ProjectInfo {
   isActive: boolean;
   exists: boolean;
-  hasMedrix: boolean;
+  hasAOS: boolean;
 }
 
 interface RegistryData {
@@ -24,12 +24,12 @@ interface RegistryData {
 
 // --- Helpers ---
 
-function globalMedrixDir(): string {
-  return join(homedir(), '.medrix');
+function globalAOSDir(): string {
+  return join(homedir(), '.aos');
 }
 
 function registryPath(): string {
-  return join(globalMedrixDir(), 'projects.json');
+  return join(globalAOSDir(), 'projects.json');
 }
 
 // --- ProjectManager ---
@@ -37,8 +37,8 @@ function registryPath(): string {
 /**
  * Manages the global project registry and active project state.
  *
- * A project is a directory containing (or that will contain) a `.medrix/` folder.
- * The global registry lives at `~/.medrix/projects.json`.
+ * A project is a directory containing (or that will contain) a `.aos/` folder.
+ * The global registry lives at `~/.aos/projects.json`.
  */
 export class ProjectManager {
   private registryFile: string;
@@ -73,7 +73,7 @@ export class ProjectManager {
   }
 
   private save(): void {
-    const dir = globalMedrixDir();
+    const dir = globalAOSDir();
     mkdirSync(dir, { recursive: true });
     const data: RegistryData = {
       active: this.activePath,
@@ -105,7 +105,7 @@ export class ProjectManager {
       ...p,
       isActive: p.path === this.activePath,
       exists: existsSync(p.path),
-      hasMedrix: existsSync(join(p.path, '.medrix')),
+      hasAOS: existsSync(join(p.path, '.aos')),
     }));
   }
 
@@ -159,8 +159,8 @@ export class ProjectManager {
   // --- Settings Scope ---
 
   getConfigScope(projectPath: string): { global: Record<string, unknown>; project: Record<string, unknown> } {
-    const globalSettingsPath = join(globalMedrixDir(), 'settings.json');
-    const projectSettingsPath = join(projectPath, '.medrix', 'settings.json');
+    const globalSettingsPath = join(globalAOSDir(), 'settings.json');
+    const projectSettingsPath = join(projectPath, '.aos', 'settings.json');
 
     let globalSettings: Record<string, unknown> = {};
     let projectSettings: Record<string, unknown> = {};

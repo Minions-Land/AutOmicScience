@@ -21,7 +21,7 @@ export interface RemoteWorker {
  * NATS-backed RemoteWorker that subscribes to invocation subjects
  * and dispatches to registered agents.
  *
- * Subject pattern: `medrix.remote.<namespace>.<agentName>.invoke`
+ * Subject pattern: `aos.remote.<namespace>.<agentName>.invoke`
  */
 export class NatsRemoteWorker implements RemoteWorker {
   private config: RemoteConfig;
@@ -42,7 +42,7 @@ export class NatsRemoteWorker implements RemoteWorker {
 
   /**
    * Start listening for invocations on NATS.
-   * Subscribes to `medrix.remote.<namespace>.<agentName>.invoke` for each registered agent.
+   * Subscribes to `aos.remote.<namespace>.<agentName>.invoke` for each registered agent.
    */
   async start(): Promise<void> {
     const mod: any = await import('nats');
@@ -52,7 +52,7 @@ export class NatsRemoteWorker implements RemoteWorker {
     this.running = true;
 
     for (const [name, agent] of this.agents.entries()) {
-      const subject = `medrix.remote.${this.config.namespace}.${name}.invoke`;
+      const subject = `aos.remote.${this.config.namespace}.${name}.invoke`;
       const sub = this.nc.subscribe(subject);
       this.subscriptions.push(sub);
 

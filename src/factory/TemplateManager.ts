@@ -40,8 +40,8 @@ export class TemplateManager {
   private readonly bundledDir: string;
 
   constructor(root?: string, bundledDir?: string) {
-    this.root = root ?? path.join(os.homedir(), '.medrix');
-    this.bundledDir = bundledDir ?? path.join(this.root, '..', '.medrix-bundled');
+    this.root = root ?? path.join(os.homedir(), '.aos');
+    this.bundledDir = bundledDir ?? path.join(this.root, '..', '.aos-bundled');
   }
 
   async init(): Promise<void> {
@@ -67,7 +67,7 @@ export class TemplateManager {
   async loadAgent(name: string): Promise<AgentTemplate> {
     const content = await fs.readFile(this.agentPath(name), 'utf-8');
     const { meta, body } = parseFrontmatter(content);
-    return { name: meta.name ?? name, model: meta.model ?? 'gpt-4o', systemPrompt: body, version: meta.version, description: meta.description, toolsets: meta.toolsets, skills: meta.skills, mcp: meta.mcp };
+    return { name: meta.name ?? name, model: meta.model ?? 'gpt-5.5', systemPrompt: body, version: meta.version, description: meta.description, toolsets: meta.toolsets, skills: meta.skills, mcp: meta.mcp };
   }
 
   async listAgents(): Promise<string[]> {

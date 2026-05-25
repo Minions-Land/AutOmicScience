@@ -24,18 +24,18 @@ const LEVEL_COLOR: Record<LogLevel, string> = {
   error: ANSI.red,
 };
 
-const DEFAULT_LOG_FILE = path.join(os.homedir(), '.medrix', 'logs', 'medrix.log');
+const DEFAULT_LOG_FILE = path.join(os.homedir(), '.aos', 'logs', 'aos.log');
 const MAX_BYTES = 10 * 1024 * 1024; // 10MB
 const MAX_ROTATIONS = 5;
 
 let currentLevel: LogLevel = ((): LogLevel => {
-  const env = (process.env.MEDRIX_LOG_LEVEL ?? '').toLowerCase();
+  const env = (process.env.AOS_LOG_LEVEL ?? '').toLowerCase();
   if (env === 'debug' || env === 'info' || env === 'warn' || env === 'error') return env;
   return 'info';
 })();
 
-const fileDisabled = process.env.MEDRIX_LOG_FILE_DISABLE === '1' || process.env.MEDRIX_LOG_FILE_DISABLE === 'true';
-const filePath = process.env.MEDRIX_LOG_FILE || DEFAULT_LOG_FILE;
+const fileDisabled = process.env.AOS_LOG_FILE_DISABLE === '1' || process.env.AOS_LOG_FILE_DISABLE === 'true';
+const filePath = process.env.AOS_LOG_FILE || DEFAULT_LOG_FILE;
 
 let dirEnsured = false;
 function ensureDirSync(p: string): void {
@@ -60,7 +60,7 @@ function rotateIfNeeded(p: string): void {
   }
   if (size < MAX_BYTES) return;
 
-  // Shift medrix.log.(N-1) -> medrix.log.N, dropping the oldest.
+  // Shift aos.log.(N-1) -> aos.log.N, dropping the oldest.
   const oldest = `${p}.${MAX_ROTATIONS}`;
   try { fsSync.rmSync(oldest, { force: true }); } catch { /* ignore */ }
   for (let i = MAX_ROTATIONS - 1; i >= 1; i--) {

@@ -39,5 +39,30 @@ build/
 *.tar.gz
 *.zip
 
-# MedrixAI runtime data (per-user, not project)
-.medrix-shared/
+# AutOmicScience runtime data (per-user, not project)
+.aos/
+.aos-shared/
+src/bridge/runtime/.aos_preflight/
+src/bridge/runtime/aos_status_preflight/
+src/bridge/runs/
+src/bridge/runtime/runs/
+src/bridge/runtime/data/
+src/bridge/runtime/artifacts/
+src/bridge/runtime/checkpoints/
+src/bridge/runtime/outputs/
+src/bridge/runtime/aos_preflight/
+.aos/
+# Optional external Bio MAS assets for Hugging Face, not GitHub
+src/bridge/runtime/external/
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/data/
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/data_proc/
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/examples/
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/model_files/
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/*.h5ad
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/*.pth
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/*.torch
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/log.txt
+src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/result.json
+cool_demo_plot.png
+demo_cool_plot.ipynb
+/runs/

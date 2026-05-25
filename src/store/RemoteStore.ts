@@ -42,6 +42,15 @@ export class RemoteStore implements Store {
     await this.client.publish(entry);
   }
 
+  async deletePackage(id: string): Promise<boolean> {
+    try {
+      await this.client.deletePackage(id);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async list(category?: StoreEntry['category']): Promise<StoreEntry[]> {
     const result = await this.client.search({ category, limit: 100 });
     return result.packages;

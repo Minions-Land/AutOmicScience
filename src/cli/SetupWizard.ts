@@ -11,10 +11,10 @@ import {
 /**
  * Interactive setup wizard.
  *
- * Detects which provider keys are already in env / ~/.medrix/.env, prompts
+ * Detects which provider keys are already in env / ~/.aos/.env, prompts
  * for the rest, optionally validates each key with a tiny live API call,
  * lets the user pick a default model, and persists everything to
- * ~/.medrix/.env without clobbering existing entries (asks first).
+ * ~/.aos/.env without clobbering existing entries (asks first).
  */
 
 export type ProviderId = 'openai' | 'anthropic' | 'gemini';
@@ -88,7 +88,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Pro
 }
 
 export interface SetupWizardOptions {
-  /** Override env file location. Default: ~/.medrix/.env */
+  /** Override env file location. Default: ~/.aos/.env */
   envFilePath?: string;
   /** Skip live key validation (useful for tests). Default: false. */
   skipValidation?: boolean;
@@ -109,13 +109,13 @@ export class SetupWizard {
   private rl: readline.Interface | null = null;
 
   constructor(opts: SetupWizardOptions = {}) {
-    this.envPath = opts.envFilePath ?? path.join(os.homedir(), '.medrix', '.env');
+    this.envPath = opts.envFilePath ?? path.join(os.homedir(), '.aos', '.env');
     this.skipValidation = opts.skipValidation ?? false;
     this.nonInteractive = opts.nonInteractive ?? false;
   }
 
   async run(): Promise<SetupResult> {
-    this.println('MedrixAI setup');
+    this.println('AutOmicScience setup');
     this.println(`Will write to: ${this.envPath}`);
     this.println('');
 
@@ -129,12 +129,12 @@ export class SetupWizard {
 
     if (configured.length === 0) {
       this.println('');
-      this.println('No providers configured. You can re-run `medrix setup` later.');
+      this.println('No providers configured. You can re-run `aos setup` later.');
     }
 
     const defaultModel = await this.pickDefaultModel(configured, existingEnv);
     if (defaultModel) {
-      existingEnv['MEDRIX_MODEL'] = defaultModel;
+      existingEnv['AOS_MODEL'] = defaultModel;
     }
 
     // NATS — keep this tiny prompt for chatroom users.
@@ -150,7 +150,7 @@ export class SetupWizard {
     this.println(`Wrote ${this.envPath}`);
     return {
       providers: configured.map(String),
-      defaultModel: existingEnv['MEDRIX_MODEL'] ?? getDefaultModel(),
+      defaultModel: existingEnv['AOS_MODEL'] ?? getDefaultModel(),
       envPath: this.envPath,
     };
   }
@@ -232,9 +232,9 @@ export class SetupWizard {
     env: Record<string, string>,
   ): Promise<string | undefined> {
     if (this.nonInteractive) {
-      return env['MEDRIX_MODEL'] || getDefaultModel();
+      return env['AOS_MODEL'] || getDefaultModel();
     }
-    if (configured.length === 0) return env['MEDRIX_MODEL'];
+    if (configured.length === 0) return env['AOS_MODEL'];
 
     // Build candidate list from configured providers.
     const candidates: string[] = [];
@@ -242,12 +242,12 @@ export class SetupWizard {
       const models = KNOWN_MODELS_BY_PROVIDER[id] ?? [];
       candidates.push(...models);
     }
-    if (candidates.length === 0) return env['MEDRIX_MODEL'];
+    if (candidates.length === 0) return env['AOS_MODEL'];
 
     this.println('');
     this.println('Available models:');
     candidates.forEach((m, i) => this.println(`  ${i + 1}. ${m}`));
-    const fallback = env['MEDRIX_MODEL'] || candidates[0];
+    const fallback = env['AOS_MODEL'] || candidates[0];
     const ans = await this.ask(`Default model [${fallback}]: `);
     if (!ans) return fallback;
 
@@ -275,7 +275,7 @@ export class SetupWizard {
         merged[provider.baseUrlEnvKey] = process.env[provider.baseUrlEnvKey] as string;
       }
     }
-    if (process.env.MEDRIX_MODEL) merged['MEDRIX_MODEL'] = process.env.MEDRIX_MODEL;
+    if (process.env.AOS_MODEL) merged['AOS_MODEL'] = process.env.AOS_MODEL;
     if (process.env.NATS_URL) merged['NATS_URL'] = process.env.NATS_URL;
 
     if (!existsSync(this.envPath)) return merged;

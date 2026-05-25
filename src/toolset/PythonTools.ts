@@ -10,7 +10,7 @@ import { ToolSet } from './ToolSet.js';
 import { runPython, resolvePythonBin, type BridgeOptions } from '../bridge/PythonBridge.js';
 
 export interface PythonToolsOptions {
-  /** Python binary path. Default: env MEDRIX_PYTHON_BIN or 'python'. */
+  /** Python binary path. Default: env AOS_PYTHON_BIN or 'python'. */
   pythonBin?: string;
   /** Working directory for Python execution. */
   cwd?: string;

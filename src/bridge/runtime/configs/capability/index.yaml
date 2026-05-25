@@ -1,4 +1,4 @@
-schema_version: canchen.mas.capability_index.v1
+schema_version: aos.mas.capability_index.v1
 source_registry: configs/model_registry.yaml
 artifact_bundle: artifacts/stage1_full
 note: Clean repository index. Source-disaggregated Stage-1 capability values are retained in capability cards; raw score tables and run outputs are excluded.

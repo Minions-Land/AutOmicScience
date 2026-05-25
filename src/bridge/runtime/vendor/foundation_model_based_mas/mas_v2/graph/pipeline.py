@@ -77,7 +77,7 @@ class MASV2Pipeline:
         self.project_root = Path(
             project_root
             or os.environ.get(
-                "CANCHEN_MAS_FOUNDATION_MAS_ROOT",
+                "AOS_MAS_FOUNDATION_MAS_ROOT",
                 Path(__file__).resolve().parents[2],
             )
         ).expanduser().resolve()

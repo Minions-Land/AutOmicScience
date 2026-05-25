@@ -6,11 +6,11 @@ description: Built-in multi-stage single-cell / spatial-transcriptomics annotati
 # Annotation Pipeline
 
 A four-step no-training annotation workflow for single-cell and spatial
-transcriptomics data, built into MedrixAI. Deterministic scientific
+transcriptomics data, built into AutOmicScience. Deterministic scientific
 compute (anndata, scanpy, sklearn, torch, scDesign3) runs in the bundled
 Python runtime at `src/bridge/runtime/` and is invoked through the
-MedrixAI `bridge/` seam; LLM-driven planning, adapter generation, and
-low-consistency adjudication run as MedrixAI `Agent`s.
+AutOmicScience `bridge/` seam; LLM-driven planning, adapter generation, and
+low-consistency adjudication run as AutOmicScience `Agent`s.
 
 ## Steps
 
@@ -49,20 +49,20 @@ All names live in the core toolsets — no plugin namespace:
 ## Required environment
 
 ```bash
-MEDRIX_PYTHON_BIN=python                  # default
-MEDRIX_PYTHON_RUNTIME=src/bridge/runtime  # default: bundled runtime/
+AOS_PYTHON_BIN=python                  # default
+AOS_PYTHON_RUNTIME=src/bridge/runtime  # default: bundled runtime/
 OPENAI_API_KEY=...                         # required when llm-mode != off
 OPENAI_BASE_URL=https://.../v1             # optional gateway override
-MEDRIX_MODEL=gpt-4o-mini                  # default LLM model id
+AOS_MODEL=gpt-5.5                      # default LLM model id
 ```
 
 ## Typical invocation
 
 ```ts
-import { createAnnotationPipeline } from 'medrix-ai';
+import { createAnnotationPipeline } from 'aos-ai';
 
 const team = await createAnnotationPipeline({
-  model: process.env.MEDRIX_MODEL ?? 'gpt-4o-mini',
+  model: process.env.AOS_MODEL ?? 'gpt-5.5',
 });
 const result = await team.runToText(JSON.stringify({
   query_profile: 'runs/selection/my_query/query_profile.json',

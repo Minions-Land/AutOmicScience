@@ -5,6 +5,8 @@
 import { z } from 'zod';
 import { defineTool } from './Tool.js';
 import { ToolSet } from './ToolSet.js';
+import { InMemoryTaskManager } from '../task/InMemoryTaskManager.js';
+import type { TaskManager } from '../task/TaskManager.js';
 
 // ---------------------------------------------------------------------------
 // Task state
@@ -25,6 +27,10 @@ export interface Task {
   dependencies: string[];
   ephemeral: boolean;
   metadata: Record<string, unknown>;
+}
+
+export interface TaskToolSetOptions {
+  manager?: TaskManager;
 }
 
 /** In-memory task store. Shared across the toolset lifetime. */
@@ -117,8 +123,9 @@ class TaskStore {
 // Toolset factory
 // ---------------------------------------------------------------------------
 
-export function taskToolSet(): ToolSet {
+export function taskToolSet(opts: TaskToolSetOptions = {}): ToolSet {
   const store = new TaskStore();
+  const manager = opts.manager ?? new InMemoryTaskManager();
 
   return new ToolSet('task', [
     defineTool<
@@ -126,6 +133,8 @@ export function taskToolSet(): ToolSet {
       Task
     >({
       name: 'create_task',
+      aliases: ['TodoWrite'],
+      operation: 'task',
       description:
         'Create a new task with a name, description, priority, and optional dependencies on other task IDs.',
       parameters: z.object({
@@ -149,10 +158,115 @@ export function taskToolSet(): ToolSet {
     }),
 
     defineTool<
+      { name: string; description?: string; script: string; timeoutMs?: number; metadata?: Record<string, unknown> },
+      { id: string; state: string }
+    >({
+      name: 'start_background_task',
+      aliases: ['TaskCreate'],
+      operation: 'task',
+      description:
+        'Start a background JavaScript task. The script receives a context with signal and reportProgress.',
+      parameters: z.object({
+        name: z.string().describe('Task name'),
+        description: z.string().optional().describe('Task description'),
+        script: z.string().describe('Async JavaScript function body to execute'),
+        timeoutMs: z.number().int().positive().optional().describe('Timeout in milliseconds'),
+        metadata: z.record(z.unknown()).optional(),
+      }),
+      isReadOnly: () => false,
+      isDestructive: () => false,
+      execute: async ({ name, description, script, timeoutMs, metadata }) => {
+        const id = await manager.submit({
+          name,
+          type: 'script',
+          description,
+          metadata,
+          timeout: timeoutMs,
+          fn: async (ctx) => {
+            const fn = new Function('ctx', `"use strict"; return (async () => {\n${script}\n})();`);
+            return fn(ctx);
+          },
+        });
+        const status = await manager.status(id);
+        return { id, state: status.state };
+      },
+    }),
+
+    defineTool<
+      { id: string },
+      Awaited<ReturnType<TaskManager['status']>>
+    >({
+      name: 'get_background_task',
+      aliases: ['TaskGet'],
+      operation: 'task',
+      description: 'Get status, progress, and result for a background task.',
+      parameters: z.object({
+        id: z.string().describe('Background task ID'),
+      }),
+      isReadOnly: () => true,
+      isDestructive: () => false,
+      execute: async ({ id }) => manager.status(id),
+    }),
+
+    defineTool<
+      Record<string, never>,
+      { tasks: Awaited<ReturnType<TaskManager['list']>>; total: number }
+    >({
+      name: 'list_background_tasks',
+      aliases: ['TaskList'],
+      operation: 'task',
+      description: 'List all background tasks.',
+      parameters: z.object({}),
+      isReadOnly: () => true,
+      isDestructive: () => false,
+      execute: async () => {
+        const tasks = await manager.list();
+        return { tasks, total: tasks.length };
+      },
+    }),
+
+    defineTool<
+      { id: string },
+      Awaited<ReturnType<TaskManager['onComplete']>>
+    >({
+      name: 'wait_background_task',
+      aliases: ['TaskOutput'],
+      operation: 'task',
+      description: 'Wait for a background task to finish and return its final result.',
+      parameters: z.object({
+        id: z.string().describe('Background task ID'),
+      }),
+      isReadOnly: () => true,
+      isDestructive: () => false,
+      execute: async ({ id }) => manager.onComplete(id),
+    }),
+
+    defineTool<
+      { id: string },
+      { ok: boolean; id: string; state: string }
+    >({
+      name: 'stop_background_task',
+      aliases: ['TaskStop'],
+      operation: 'task',
+      description: 'Cancel a running or pending background task.',
+      parameters: z.object({
+        id: z.string().describe('Background task ID'),
+      }),
+      isReadOnly: () => false,
+      isDestructive: () => false,
+      execute: async ({ id }) => {
+        await manager.cancel(id);
+        const status = await manager.status(id);
+        return { ok: true, id, state: status.state };
+      },
+    }),
+
+    defineTool<
       { id: string; status?: string; priority?: string; description?: string; metadata?: Record<string, unknown> },
       Task
     >({
       name: 'update_task',
+      operation: 'task',
       description: 'Update a task status, priority, description, or metadata.',
       parameters: z.object({
         id: z.string().describe('Task ID'),
@@ -176,6 +290,7 @@ export function taskToolSet(): ToolSet {
       { tasks: Task[]; total: number }
     >({
       name: 'list_tasks',
+      operation: 'task',
       description: 'List tasks with optional status and priority filters.',
       parameters: z.object({
         status: z.enum(['pending', 'in_progress', 'completed', 'failed', 'cancelled']).optional(),
@@ -195,6 +310,7 @@ export function taskToolSet(): ToolSet {
       Task
     >({
       name: 'complete_task',
+      operation: 'task',
       description: 'Mark a task as completed. Optionally add a completion summary to metadata.',
       parameters: z.object({
         id: z.string().describe('Task ID'),
@@ -214,6 +330,7 @@ export function taskToolSet(): ToolSet {
       { canStart: boolean; blockedBy: string[] }
     >({
       name: 'check_dependencies',
+      operation: 'task',
       description: 'Check if a task can start (all dependencies completed).',
       parameters: z.object({
         id: z.string().describe('Task ID'),

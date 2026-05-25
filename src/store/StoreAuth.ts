@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, chmodSync } from 'f
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 
-const AUTH_FILE = join(homedir(), '.medrix', 'store_auth.json');
+const AUTH_FILE = join(homedir(), '.aos', 'store_auth.json');
 
 export interface AuthData {
   hubUrl: string;

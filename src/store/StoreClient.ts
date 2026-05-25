@@ -1,7 +1,7 @@
 import { StoreAuth } from './StoreAuth.js';
 import type { StoreEntry, StoreVersion } from './StoreEntry.js';
 
-const DEFAULT_HUB_URL = 'https://store.medrix.ai';
+const DEFAULT_HUB_URL = 'https://store.aos.ai';
 
 export class StoreClient {
   private readonly auth: StoreAuth;
@@ -9,7 +9,7 @@ export class StoreClient {
 
   constructor(hubUrl?: string, auth?: StoreAuth) {
     this.auth = auth ?? new StoreAuth();
-    this.hubUrl = (hubUrl ?? process.env.MEDRIX_HUB_URL ?? this.auth.hubUrl ?? DEFAULT_HUB_URL).replace(/\/$/, '');
+    this.hubUrl = (hubUrl ?? process.env.AOS_HUB_URL ?? this.auth.hubUrl ?? DEFAULT_HUB_URL).replace(/\/$/, '');
   }
 
   private headers(): Record<string, string> {
@@ -19,7 +19,7 @@ export class StoreClient {
   }
 
   private checkAuth(): void {
-    if (!this.auth.isLoggedIn) throw new Error('Not logged in. Run: medrix store login');
+    if (!this.auth.isLoggedIn) throw new Error('Not logged in. Run: aos store login');
   }
 
   async login(username: string, password: string): Promise<{ accessToken: string; user: any }> {

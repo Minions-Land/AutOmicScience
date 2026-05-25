@@ -6,7 +6,7 @@ import type { StoreEntry } from './StoreEntry.js';
 import { PackageInstaller } from './PackageInstaller.js';
 import type { PackageType } from './PackageInstaller.js';
 
-const STORE_DIR = path.join(os.homedir(), '.medrix', 'store');
+const STORE_DIR = path.join(os.homedir(), '.aos', 'store');
 const REGISTRY_FILE = path.join(STORE_DIR, 'registry.json');
 
 export class LocalStore implements Store {
@@ -73,6 +73,15 @@ export class LocalStore implements Store {
       this.entries.push(stored);
     }
     await this.persist();
+  }
+
+  async deletePackage(id: string): Promise<boolean> {
+    await this.ensureLoaded();
+    const before = this.entries.length;
+    this.entries = this.entries.filter((e) => e.id !== id && e.name !== id);
+    if (this.entries.length === before) return false;
+    await this.persist();
+    return true;
   }
 
   async list(category?: StoreEntry['category']): Promise<StoreEntry[]> {

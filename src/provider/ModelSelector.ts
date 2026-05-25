@@ -10,7 +10,7 @@ export function providerForModel(model: string): LLMProvider {
   if (lower.startsWith('gpt-') || lower.startsWith('o1') || lower.startsWith('o3') || lower.startsWith('o4')) {
     return new OpenAIProvider();
   }
-  if (lower.startsWith('claude')) return new AnthropicProvider();
+  if (lower.startsWith('anthropic/')) return new AnthropicProvider();
   if (lower.startsWith('gemini')) return new GeminiProvider();
   // Default: try whichever key is set.
   if (process.env.OPENAI_API_KEY) return new OpenAIProvider();
@@ -20,5 +20,5 @@ export function providerForModel(model: string): LLMProvider {
 }
 
 export function defaultModel(): string {
-  return process.env.MEDRIX_MODEL || 'gpt-4o-mini';
+  return process.env.AOS_MODEL || 'gpt-5.5';
 }

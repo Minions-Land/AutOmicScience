@@ -57,7 +57,7 @@ export function truncateLines(text: string, maxLines: number): string {
 
 /**
  * Truncate a string preserving head and tail with size info.
- * Matches PantheonOS truncate_string behavior.
+ * Matches AutOmicScience truncate_string behavior.
  */
 export function truncateString(content: string, maxLength: number): string {
   if (content.length <= maxLength) return content;

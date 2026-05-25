@@ -251,10 +251,10 @@ dependencies:
 - safetensors
 artifacts:
   checkpoint:
-    path: ${CANCHEN_MAS_GENEFORMER_DIR}/model.safetensors
+    path: ${AOS_MAS_GENEFORMER_DIR}/model.safetensors
     required: true
   code_and_vocab:
-    path: ${CANCHEN_MAS_GENEFORMER_DIR}/Geneformer_code_only
+    path: ${AOS_MAS_GENEFORMER_DIR}/Geneformer_code_only
     required: true
 executor_defaults:
   embedding_method: geneformer_raw

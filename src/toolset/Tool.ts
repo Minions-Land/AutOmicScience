@@ -1,11 +1,51 @@
 import { z, ZodTypeAny } from 'zod';
 import type { ExecutionContext } from '../types.js';
+import type { PermissionDecision, PermissionRequest, ToolOperation } from '../permissions/index.js';
 
-export interface Tool<TArgs = unknown, TResult = unknown> {
+export interface ToolValidationResult {
+  ok: boolean;
+  message?: string;
+  errorCode?: string;
+}
+
+export interface ToolLifecycle<TArgs = any> {
+  aliases?: string[];
+  searchHint?: string;
+  shouldDefer?: boolean;
+  maxResultSizeChars?: number;
+  operation?: ToolOperation;
+  validateInput?: (args: TArgs, ctx: ExecutionContext) => Promise<ToolValidationResult | void> | ToolValidationResult | void;
+  checkPermissions?: (args: TArgs, ctx: ExecutionContext) => Promise<PermissionDecision | void> | PermissionDecision | void;
+  isEnabled?: (ctx?: ExecutionContext) => boolean;
+  isReadOnly?: (args: TArgs) => boolean;
+  isDestructive?: (args: TArgs) => boolean;
+  isConcurrencySafe?: (args: TArgs) => boolean;
+  getPath?: (args: TArgs) => string | undefined;
+  getCommand?: (args: TArgs) => string | undefined;
+  userFacingName?: (args: TArgs) => string;
+  prompt?: () => string;
+}
+
+export interface Tool<TArgs = any, TResult = any> {
   name: string;
   description: string;
   parameters: ZodTypeAny;
   execute(args: TArgs, ctx: ExecutionContext): Promise<TResult>;
+  aliases?: string[];
+  searchHint?: string;
+  shouldDefer?: boolean;
+  maxResultSizeChars?: number;
+  operation?: ToolOperation;
+  validateInput?: (args: TArgs, ctx: ExecutionContext) => Promise<ToolValidationResult | void> | ToolValidationResult | void;
+  checkPermissions?: (args: TArgs, ctx: ExecutionContext) => Promise<PermissionDecision | void> | PermissionDecision | void;
+  isEnabled?: (ctx?: ExecutionContext) => boolean;
+  isReadOnly?: (args: TArgs) => boolean;
+  isDestructive?: (args: TArgs) => boolean;
+  isConcurrencySafe?: (args: TArgs) => boolean;
+  getPath?: (args: TArgs) => string | undefined;
+  getCommand?: (args: TArgs) => string | undefined;
+  userFacingName?: (args: TArgs) => string;
+  prompt?: () => string;
 }
 
 /**
@@ -18,7 +58,7 @@ export interface ToolMetadata {
   name?: string;
 }
 
-export const TOOL_METADATA = Symbol.for('medrix.tool.metadata');
+export const TOOL_METADATA = Symbol.for('aos.tool.metadata');
 
 type DecoratedTarget = Record<string | symbol, unknown> & {
   constructor: { name: string };
@@ -66,13 +106,29 @@ export function defineTool<TArgs, TResult>(spec: {
   description: string;
   parameters: ZodTypeAny;
   execute: (args: TArgs, ctx: ExecutionContext) => Promise<TResult> | TResult;
-}): Tool<TArgs, TResult> {
+} & ToolLifecycle<TArgs>): Tool<TArgs, TResult> {
   return {
     name: spec.name,
     description: spec.description,
     parameters: spec.parameters,
     execute: async (args, ctx) => spec.execute(args as TArgs, ctx),
+    aliases: spec.aliases,
+    searchHint: spec.searchHint,
+    shouldDefer: spec.shouldDefer,
+    maxResultSizeChars: spec.maxResultSizeChars,
+    operation: spec.operation,
+    validateInput: spec.validateInput,
+    checkPermissions: spec.checkPermissions,
+    isEnabled: spec.isEnabled,
+    isReadOnly: spec.isReadOnly,
+    isDestructive: spec.isDestructive,
+    isConcurrencySafe: spec.isConcurrencySafe,
+    getPath: spec.getPath,
+    getCommand: spec.getCommand,
+    userFacingName: spec.userFacingName,
+    prompt: spec.prompt,
   };
 }
 
 export { z };
+export type { PermissionDecision, PermissionRequest, ToolOperation };

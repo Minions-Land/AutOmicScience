@@ -1,10 +1,11 @@
 import type { Agent } from '../agent/Agent.js';
 import type { ToolSet } from '../toolset/ToolSet.js';
 import { logger } from '../utils/logger.js';
+import { AOS_SYSTEM_PROMPT } from '../agent/prompts/AOSSystemPrompt.js';
 
 /**
- * Exposes MedrixAI agents and toolsets AS an MCP server that external
- * clients (Claude Desktop, other MCP consumers) can connect to.
+ * Exposes AutOmicScience agents and toolsets AS an MCP server that external
+ * clients and other MCP consumers can connect to.
  *
  * Implements:
  * - tools/list + tools/call  — each agent and toolset tool becomes an MCP tool
@@ -17,7 +18,7 @@ export interface McpServerEndpoint {
 }
 
 export interface McpServerEndpointOptions {
-  /** Server name reported to MCP clients. Default: 'medrix-mcp' */
+  /** Server name reported to MCP clients. Default: 'aos-mcp' */
   name?: string;
   /** Server version. Default: '0.1.0' */
   version?: string;
@@ -54,7 +55,7 @@ export class McpServerEndpointImpl implements McpServerEndpoint {
 
   constructor(opts: McpServerEndpointOptions = {}) {
     this.opts = {
-      name: opts.name ?? 'medrix-mcp',
+      name: opts.name ?? 'aos-mcp',
       version: opts.version ?? '0.1.0',
       transport: opts.transport ?? 'stdio',
       port: opts.port ?? 3000,
@@ -96,7 +97,7 @@ export class McpServerEndpointImpl implements McpServerEndpoint {
       for (const agent of agents) {
         tools.push({
           name: `agent__${agent.name}`,
-          description: `Invoke MedrixAI agent: ${agent.name}`,
+          description: `Invoke AutOmicScience agent: ${agent.name}`,
           inputSchema: {
             type: 'object',
             properties: {
@@ -177,7 +178,7 @@ export class McpServerEndpointImpl implements McpServerEndpoint {
     // ── resources/list ────────────────────────────────────────────────────────
     this.server.setRequestHandler(ListResourcesRequestSchema, async () => {
       const resources = agents.map((agent) => ({
-        uri: `medrix://agent/${agent.name}/history`,
+        uri: `aos://agent/${agent.name}/history`,
         name: `${agent.name} conversation history`,
         description: `Conversation history for agent ${agent.name}`,
         mimeType: 'application/json',
@@ -188,7 +189,7 @@ export class McpServerEndpointImpl implements McpServerEndpoint {
     // ── resources/read ────────────────────────────────────────────────────────
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request: any) => {
       const uri: string = request.params.uri;
-      const match = uri.match(/^medrix:\/\/agent\/([^\/]+)\/history$/);
+      const match = uri.match(/^aos:\/\/agent\/([^\/]+)\/history$/);
       if (!match) {
         throw new Error(`Unknown resource URI: ${uri}`);
       }
@@ -233,7 +234,7 @@ export class McpServerEndpointImpl implements McpServerEndpoint {
       const systemPrompt: string =
         typeof (agent as any).systemPrompt === 'string'
           ? (agent as any).systemPrompt
-          : `You are ${agentName}, a helpful AI assistant.`;
+          : AOS_SYSTEM_PROMPT;
 
       return {
         description: `System prompt for ${agentName}`,

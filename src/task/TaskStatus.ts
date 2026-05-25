@@ -8,6 +8,14 @@ export interface TaskStatus {
   name: string;
   /** Current state of the task. */
   state: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  /** Optional task type for routing/inspection. */
+  type?: string;
+  /** Optional description. */
+  description?: string;
+  /** Optional metadata. */
+  metadata?: Record<string, unknown>;
+  /** Progress messages reported by the task. */
+  progress?: unknown[];
   /** The result value if completed. */
   result?: unknown;
   /** Error message if failed. */

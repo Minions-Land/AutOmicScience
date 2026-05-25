@@ -4,15 +4,15 @@ import { homedir } from 'os';
 
 export type PackageType = 'agent' | 'team' | 'skill' | 'tool';
 
-function medrixDir(): string {
-  return join(homedir(), '.medrix');
+function aosDir(): string {
+  return join(homedir(), '.aos');
 }
 
 export class PackageInstaller {
   private readonly baseDir: string;
 
   constructor(baseDir?: string) {
-    this.baseDir = baseDir ?? medrixDir();
+    this.baseDir = baseDir ?? aosDir();
   }
 
   private dirFor(type: PackageType): string {

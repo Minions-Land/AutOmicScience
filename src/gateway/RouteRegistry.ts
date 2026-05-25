@@ -17,7 +17,7 @@ export interface RouteEntry {
 }
 
 function defaultRegistryPath(): string {
-  return join(homedir(), '.medrix', 'gateway', 'routes.json');
+  return join(homedir(), '.aos', 'gateway', 'routes.json');
 }
 
 export class RouteRegistry {

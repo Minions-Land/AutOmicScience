@@ -21,7 +21,7 @@ import {
 export interface RoomManagerOptions {
   /** Room name identifier. */
   name?: string;
-  /** Data directory for persistence. Default: ~/.medrix */
+  /** Data directory for persistence. Default: ~/.aos */
   dataDir?: string;
   /** NATS URL for streaming. Default: nats://localhost:4222 */
   natsUrl?: string;
@@ -212,7 +212,7 @@ class MemoryManager {
 // --- RoomManager ---
 
 /**
- * RoomManager is the central orchestrator for the MedrixAI chatroom.
+ * RoomManager is the central orchestrator for the AutOmicScience chatroom.
  *
  * Responsibilities:
  * - Agent registration and lifecycle management
@@ -246,8 +246,8 @@ export class RoomManager extends EventEmitter {
 
   constructor(opts?: RoomManagerOptions) {
     super();
-    this.name = opts?.name ?? 'medrix-chatroom';
-    this.dataDir = opts?.dataDir ?? join(homedir(), '.medrix');
+    this.name = opts?.name ?? 'aos-chatroom';
+    this.dataDir = opts?.dataDir ?? join(homedir(), '.aos');
     this.memoryDir = join(this.dataDir, 'memory');
     this.natsUrl = opts?.natsUrl ?? process.env.NATS_URL ?? 'nats://localhost:4222';
     this.enableNatsStreaming = opts?.enableNatsStreaming ?? false;
@@ -379,7 +379,7 @@ export class RoomManager extends EventEmitter {
       const project = memory.extraData.project as Record<string, unknown> | undefined;
       if (project?.workspace_mode === 'isolated' && project.workspace_path) {
         const wsPath = project.workspace_path as string;
-        if (existsSync(wsPath) && wsPath.includes('.medrix')) {
+        if (existsSync(wsPath) && wsPath.includes('.aos')) {
           rmSync(wsPath, { recursive: true, force: true });
         }
       }

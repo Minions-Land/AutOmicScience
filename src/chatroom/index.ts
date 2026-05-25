@@ -1,4 +1,4 @@
-// MedrixAI Chatroom Module
+// AutOmicScience Chatroom Module
 // Full-featured distributed chatroom with NATS-backed messaging,
 // agent orchestration, project management, and conversation export.
 

@@ -251,13 +251,13 @@ dependencies:
 - numpy
 artifacts:
   checkpoint:
-    path: ${CANCHEN_MAS_NICHEFORMER_DIR}/nicheformer.ckpt
+    path: ${AOS_MAS_NICHEFORMER_DIR}/nicheformer.ckpt
     required: true
   vocab_h5ad:
-    path: ${CANCHEN_MAS_NICHEFORMER_DIR}/model.h5ad
+    path: ${AOS_MAS_NICHEFORMER_DIR}/model.h5ad
     required: true
   gene_map:
-    path: ${CANCHEN_MAS_NICHEFORMER_DIR}/gene_name_id_dict_gc104M.pkl
+    path: ${AOS_MAS_NICHEFORMER_DIR}/gene_name_id_dict_gc104M.pkl
     required: true
 executor_defaults:
   embedding_method: nicheformer_raw

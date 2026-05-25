@@ -1,8 +1,8 @@
 # Portable path defaults. Override these with environment variables when data or
 # foundation-model checkpoints live outside the repository.
-scmas_root: ${CANCHEN_MAS_ROOT}
-foundation_mas_root: ${CANCHEN_MAS_FOUNDATION_MAS_ROOT}
-foundation_checkpoint_root: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}
+scmas_root: ${AOS_MAS_ROOT}
+foundation_mas_root: ${AOS_MAS_FOUNDATION_MAS_ROOT}
+foundation_checkpoint_root: ${AOS_MAS_FOUNDATION_CHECKPOINT_ROOT}
 
 data:
   root: data
@@ -13,15 +13,15 @@ data:
   query: data/query
 
 external_data:
-  seaad_merfish_h5ad: ${CANCHEN_MAS_SEAAD_MERFISH_H5AD}
-  seaad_donor_h5ad_dir: ${CANCHEN_MAS_SEAAD_DONOR_H5AD_DIR}
-  kukanja_ms_npz: ${CANCHEN_MAS_KUKANJA_MS_NPZ}
-  kukanja_eae_npz: ${CANCHEN_MAS_KUKANJA_EAE_NPZ}
+  seaad_merfish_h5ad: ${AOS_MAS_SEAAD_MERFISH_H5AD}
+  seaad_donor_h5ad_dir: ${AOS_MAS_SEAAD_DONOR_H5AD_DIR}
+  kukanja_ms_npz: ${AOS_MAS_KUKANJA_MS_NPZ}
+  kukanja_eae_npz: ${AOS_MAS_KUKANJA_EAE_NPZ}
 
 foundation_models:
-  geneformer_dir: ${CANCHEN_MAS_GENEFORMER_DIR}
-  scgpt_dir: ${CANCHEN_MAS_SCGPT_DIR}
-  nicheformer_dir: ${CANCHEN_MAS_NICHEFORMER_DIR}
-  uce_4l_dir: ${CANCHEN_MAS_UCE_4L_DIR}
-  uce_33l_dir: ${CANCHEN_MAS_UCE_33L_DIR}
-  uce_model_py: ${CANCHEN_MAS_UCE_MODEL_PY}
+  geneformer_dir: ${AOS_MAS_GENEFORMER_DIR}
+  scgpt_dir: ${AOS_MAS_SCGPT_DIR}
+  nicheformer_dir: ${AOS_MAS_NICHEFORMER_DIR}
+  uce_4l_dir: ${AOS_MAS_UCE_4L_DIR}
+  uce_33l_dir: ${AOS_MAS_UCE_33L_DIR}
+  uce_model_py: ${AOS_MAS_UCE_MODEL_PY}

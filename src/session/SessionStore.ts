@@ -12,4 +12,8 @@ export interface SessionStore {
   load(sessionId: string): Promise<SessionData | null>;
   list(): Promise<string[]>;
   delete(sessionId: string): Promise<void>;
+  exportMarkdown?(sessionId: string, outputPath: string): Promise<void>;
+  exportJsonl?(sessionId: string, outputPath: string): Promise<void>;
+  exportBundle?(sessionId: string, outputDir: string): Promise<void>;
+  importBundle?(bundlePath: string, sessionId?: string): Promise<string>;
 }

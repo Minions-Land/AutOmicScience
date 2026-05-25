@@ -257,7 +257,7 @@ dependencies:
 - torch-geometric
 artifacts:
   checkpoint:
-    path: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/spatial_gnn/SEA_AD_MTP_ST/checkpoints/k15_gcn2_h256_z128_s3028/best_model.pth
+    path: ${AOS_MAS_FOUNDATION_CHECKPOINT_ROOT}/spatial_gnn/SEA_AD_MTP_ST/checkpoints/k15_gcn2_h256_z128_s3028/best_model.pth
     required: false
 data_constraints:
   compatible_contract: seaad_140_npz

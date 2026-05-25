@@ -138,7 +138,7 @@ class JupyterKernel {
   ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
     const proc = await this.ensureRunning();
 
-    const sentinel = `__MEDRIX_CELL_${crypto.randomBytes(8).toString('hex')}__`;
+    const sentinel = `__AOS_CELL_${crypto.randomBytes(8).toString('hex')}__`;
     const stdoutMark = `${sentinel}_OUT`;
     const stderrMark = `${sentinel}_ERR`;
 

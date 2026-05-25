@@ -4,7 +4,7 @@ import os from 'node:os';
 import type { SessionStore, SessionData } from './SessionStore.js';
 import type { Message } from '../types.js';
 
-const SESSIONS_DIR = path.join(os.homedir(), '.medrix', 'sessions');
+const SESSIONS_DIR = path.join(os.homedir(), '.aos', 'sessions');
 
 export class FileSessionStore implements SessionStore {
   private dir: string;
@@ -47,4 +47,65 @@ export class FileSessionStore implements SessionStore {
   async delete(sessionId: string): Promise<void> {
     try { await fs.unlink(this.filePath(sessionId)); } catch { /* ignore */ }
   }
+
+  async exportMarkdown(sessionId: string, outputPath: string): Promise<void> {
+    const session = await this.load(sessionId);
+    if (!session) throw new Error(`Session not found: ${sessionId}`);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.writeFile(outputPath, sessionToMarkdown(sessionId, session), 'utf-8');
+  }
+
+  async exportJsonl(sessionId: string, outputPath: string): Promise<void> {
+    const session = await this.load(sessionId);
+    if (!session) throw new Error(`Session not found: ${sessionId}`);
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+    const lines = (session.messages ?? []).map((message) => JSON.stringify(message));
+    await fs.writeFile(outputPath, lines.join('\n') + (lines.length ? '\n' : ''), 'utf-8');
+  }
+
+  async exportBundle(sessionId: string, outputDir: string): Promise<void> {
+    const session = await this.load(sessionId);
+    if (!session) throw new Error(`Session not found: ${sessionId}`);
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(path.join(outputDir, 'session.json'), JSON.stringify(session, null, 2), 'utf-8');
+    await fs.writeFile(path.join(outputDir, 'session.md'), sessionToMarkdown(sessionId, session), 'utf-8');
+    await this.exportJsonl(sessionId, path.join(outputDir, 'session.jsonl'));
+    await fs.writeFile(path.join(outputDir, 'manifest.json'), JSON.stringify({
+      version: '1.0',
+      sessionId,
+      chatId: session.chatId,
+      exportedAt: new Date().toISOString(),
+      messageCount: session.messages?.length ?? 0,
+      metadata: session.metadata ?? {},
+    }, null, 2), 'utf-8');
+  }
+
+  async importBundle(bundlePath: string, sessionId?: string): Promise<string> {
+    const raw = await fs.readFile(path.join(bundlePath, 'session.json'), 'utf-8');
+    const session = JSON.parse(raw) as SessionData;
+    const id = sessionId ?? session.chatId ?? path.basename(bundlePath);
+    await this.save(id, session);
+    return id;
+  }
+}
+
+function sessionToMarkdown(sessionId: string, session: SessionData): string {
+  const parts = [
+    `# ${sessionId}`,
+    '',
+    `> Exported: ${new Date().toISOString()}`,
+    `> Messages: ${session.messages?.length ?? 0}`,
+    '',
+    '---',
+    '',
+  ];
+  for (const message of session.messages ?? []) {
+    parts.push(`## ${message.role}`, '', messageToText(message), '', '---', '');
+  }
+  return parts.join('\n');
+}
+
+function messageToText(message: Message): string {
+  if (typeof message.content === 'string') return message.content;
+  return message.content.map((part) => part.type === 'text' ? part.text : `[image:${part.mediaType ?? 'unknown'}]`).join('\n');
 }

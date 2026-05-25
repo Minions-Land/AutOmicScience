@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -5,7 +6,7 @@ import path from 'node:path';
 /**
  * Generic Python subprocess bridge.
  *
- * MedrixAI's tools (Bio/Synthetic/Benchmark/AnnotationStage) call into
+ * AutOmicScience's tools (Bio/Synthetic/Benchmark/AnnotationStage) call into
  * the bundled Python runtime that owns the heavy scientific compute
  * (anndata, scanpy, sklearn, torch, R/scDesign3). This file is the single
  * process boundary; everything above it is typed Tool/Agent surface.
@@ -15,11 +16,11 @@ import path from 'node:path';
  */
 
 export interface BridgeOptions {
-  /** Python executable. Default: env MEDRIX_PYTHON_BIN or `python`. */
+  /** Python executable. Default: env AOS_PYTHON_BIN or `python`. */
   pythonBin?: string;
-  /** Runtime root. Default: env MEDRIX_PYTHON_RUNTIME or the bundled runtime/. */
+  /** Runtime root. Default: env AOS_PYTHON_RUNTIME or the bundled runtime/. */
   cwd?: string;
-  /** Module name to invoke with `python -m <module>`. Default: `novaeve_agent`. */
+  /** Module name to invoke with `python -m <module>`. Default: `aos_agent`. */
   moduleName?: string;
   /** Extra env vars merged on top of process.env. */
   env?: NodeJS.ProcessEnv;
@@ -33,6 +34,10 @@ export interface BridgeResult {
   stderr: string;
   /** Last JSON object parsed from stdout, if any. */
   parsedJson?: unknown;
+  /** JSON report read from a path printed by the Python CLI, when available. */
+  reportJson?: unknown;
+  /** Report file path printed by the Python CLI, when available. */
+  reportPath?: string;
 }
 
 export type CliFlag =
@@ -42,17 +47,21 @@ export type CliFlag =
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 // src/bridge/ → src/bridge/runtime (the absorbed Python runtime)
-const VENDORED_DIR = path.resolve(HERE, 'runtime');
+const DIST_RUNTIME_DIR = path.resolve(HERE, 'runtime');
+const SOURCE_RUNTIME_DIR = path.resolve(HERE, '..', '..', 'src', 'bridge', 'runtime');
+// In dev/tsx this is src/bridge/runtime. Built dist/ does not contain the
+// Python tree, so fall back to the repository source runtime.
+const VENDORED_DIR = existsSync(DIST_RUNTIME_DIR) ? DIST_RUNTIME_DIR : SOURCE_RUNTIME_DIR;
 
 // Internal Python module name for the biological compute runtime.
-const DEFAULT_PYTHON_MODULE = 'novaeve_agent';
+const DEFAULT_PYTHON_MODULE = 'aos_agent';
 
 export function resolveVendorRoot(opt?: BridgeOptions): string {
-  return opt?.cwd ?? process.env.MEDRIX_PYTHON_RUNTIME ?? VENDORED_DIR;
+  return opt?.cwd ?? process.env.AOS_PYTHON_RUNTIME ?? VENDORED_DIR;
 }
 
 export function resolvePythonBin(opt?: BridgeOptions): string {
-  return opt?.pythonBin ?? process.env.MEDRIX_PYTHON_BIN ?? 'python';
+  return opt?.pythonBin ?? process.env.AOS_PYTHON_BIN ?? 'python';
 }
 
 /**
@@ -96,7 +105,12 @@ export function runPython(
     const argv = buildPythonArgv(moduleName, subcommand, flags);
     const child = spawn(resolvePythonBin(opt), argv, {
       cwd: resolveVendorRoot(opt),
-      env: { ...process.env, ...opt.env },
+      env: {
+        ...process.env,
+        PYTHONIOENCODING: process.env.PYTHONIOENCODING ?? 'utf-8',
+        PYTHONUTF8: process.env.PYTHONUTF8 ?? '1',
+        ...opt.env,
+      },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -110,13 +124,25 @@ export function runPython(
     child.on('close', (code) => {
       clearTimeout(timer);
       const parsedJson = extractTrailingJson(stdout);
-      resolve({ exitCode: code ?? -1, stdout, stderr, parsedJson });
+      const report = readJsonReportFromStdout(stdout);
+      resolve({ exitCode: code ?? -1, stdout, stderr, parsedJson, ...report });
     });
     child.on('error', (err) => {
       clearTimeout(timer);
       resolve({ exitCode: -1, stdout, stderr: stderr + String(err) });
     });
   });
+}
+
+function readJsonReportFromStdout(stdout: string): { reportJson?: unknown; reportPath?: string } {
+  const pathText = stdout.trim().split(/\r?\n/).filter(Boolean).at(-1);
+  if (!pathText || !pathText.toLowerCase().endsWith('.json')) return {};
+  try {
+    const parsed = JSON.parse(readFileSync(pathText, 'utf-8'));
+    return { reportJson: parsed, reportPath: pathText };
+  } catch {
+    return { reportPath: pathText };
+  }
 }
 
 function extractTrailingJson(text: string): unknown | undefined {

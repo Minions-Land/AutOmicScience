@@ -71,8 +71,8 @@ export const DEFAULT_CONFIG: EvolutionConfig = {
   numInspirations: 2,
   numTopPrograms: 3,
 
-  mutatorModel: 'gpt-4o',
-  feedbackModel: 'gpt-4o-mini',
+  mutatorModel: 'gpt-5.5',
+  feedbackModel: 'gpt-5.4',
 
   dbPath: undefined,
   saveAllPrograms: true,

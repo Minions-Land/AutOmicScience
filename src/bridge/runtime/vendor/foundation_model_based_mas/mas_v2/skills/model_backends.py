@@ -16,23 +16,23 @@ from .data_utils import normalize_gene_symbol, upper_set
 
 
 PROJECT_ROOT = Path(
-    os.environ.get("CANCHEN_MAS_FOUNDATION_MAS_ROOT", Path(__file__).resolve().parents[2])
+    os.environ.get("AOS_MAS_FOUNDATION_MAS_ROOT", Path(__file__).resolve().parents[2])
 ).expanduser().resolve()
 CHECKPOINT_ROOT = Path(
-    os.environ.get("CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT", PROJECT_ROOT / "checkpoints" / "foundation_models")
+    os.environ.get("AOS_MAS_FOUNDATION_CHECKPOINT_ROOT", PROJECT_ROOT / "checkpoints" / "foundation_models")
 ).expanduser().resolve()
 MJM_ROOT = Path(
-    os.environ.get("CANCHEN_MAS_SEAAD_MJM_ROOT", PROJECT_ROOT / "external" / "SEA-AD" / "MJM")
+    os.environ.get("AOS_MAS_SEAAD_MJM_ROOT", PROJECT_ROOT / "external" / "SEA-AD" / "MJM")
 ).expanduser().resolve()
 if str(MJM_ROOT) not in sys.path:
     sys.path.insert(0, str(MJM_ROOT))
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-GF_CODE_DIR = Path(os.environ.get("CANCHEN_MAS_GENEFORMER_CODE_DIR", CHECKPOINT_ROOT / "geneformer" / "Geneformer_code_only"))
-GF_WEIGHTS = Path(os.environ.get("CANCHEN_MAS_GENEFORMER_WEIGHTS", CHECKPOINT_ROOT / "geneformer" / "model.safetensors"))
-SCGPT_CHECKPOINT_ROOT = Path(os.environ.get("CANCHEN_MAS_SCGPT_DIR", CHECKPOINT_ROOT / "scgpt"))
-NICHEFORMER_DIR = Path(os.environ.get("CANCHEN_MAS_NICHEFORMER_DIR", CHECKPOINT_ROOT / "nicheformer"))
+GF_CODE_DIR = Path(os.environ.get("AOS_MAS_GENEFORMER_CODE_DIR", CHECKPOINT_ROOT / "geneformer" / "Geneformer_code_only"))
+GF_WEIGHTS = Path(os.environ.get("AOS_MAS_GENEFORMER_WEIGHTS", CHECKPOINT_ROOT / "geneformer" / "model.safetensors"))
+SCGPT_CHECKPOINT_ROOT = Path(os.environ.get("AOS_MAS_SCGPT_DIR", CHECKPOINT_ROOT / "scgpt"))
+NICHEFORMER_DIR = Path(os.environ.get("AOS_MAS_NICHEFORMER_DIR", CHECKPOINT_ROOT / "nicheformer"))
 
 
 def resolve_scgpt_checkpoint_dir(model_id: str) -> Path:

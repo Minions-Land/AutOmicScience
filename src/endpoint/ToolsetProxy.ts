@@ -4,7 +4,7 @@ import type { OpenAIToolDef } from '../types.js';
 /**
  * A ToolSet-compatible proxy that forwards tool calls to a remote HTTP endpoint.
  *
- * Mirrors PantheonOS toolset_proxy.py — proxies getTools() and execute() via HTTP.
+ * Mirrors AutOmicScience toolset_proxy.py — proxies getTools() and execute() via HTTP.
  */
 export interface ToolProxy {
   name: string;
@@ -14,7 +14,7 @@ export interface ToolProxy {
 }
 
 export interface ToolsetProxyOptions {
-  /** Base URL of the remote MedrixAI HttpEndpoint (e.g. http://localhost:4000). */
+  /** Base URL of the remote AutOmicScience HttpEndpoint (e.g. http://localhost:4000). */
   baseUrl: string;
   /** Name of the toolset on the remote server. */
   toolsetName: string;

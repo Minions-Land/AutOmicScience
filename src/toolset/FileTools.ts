@@ -7,12 +7,17 @@ import path from 'node:path';
 import { z } from 'zod';
 import { defineTool } from './Tool.js';
 import { ToolSet } from './ToolSet.js';
+import { PermissionManager } from '../permissions/index.js';
+import type { PermissionManagerOptions } from '../permissions/index.js';
 
 export interface FileToolsOptions {
   /** Root directory for resolving relative paths. */
   rootDir?: string;
   /** Maximum file size in bytes that can be read (default 10MB). */
   maxReadSize?: number;
+  /** Optional shared permission manager for AutOmicScience tool permission checks. */
+  permissionManager?: PermissionManager;
+  permissions?: PermissionManagerOptions;
 }
 
 export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
@@ -29,6 +34,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { content: string; totalLines: number; path: string }
     >({
       name: 'read_file',
+      aliases: ['Read'],
+      operation: 'read',
+      maxResultSizeChars: 120_000,
       description:
         'Read a text file. Optionally specify a line range (1-indexed, inclusive).',
       parameters: z.object({
@@ -36,6 +44,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
         startLine: z.number().int().positive().optional().describe('Start line (1-indexed)'),
         endLine: z.number().int().positive().optional().describe('End line (1-indexed)'),
       }),
+      getPath: ({ path: p }) => resolve(p),
+      isReadOnly: () => true,
+      isDestructive: () => false,
       execute: async ({ path: p, startLine, endLine }) => {
         const full = resolve(p);
         const stat = await fs.stat(full);
@@ -65,12 +76,17 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { ok: boolean; path: string; bytesWritten: number }
     >({
       name: 'write_file',
+      aliases: ['Write'],
+      operation: 'write',
       description: 'Write content to a file. Creates parent directories if needed.',
       parameters: z.object({
         path: z.string().describe('File path'),
         content: z.string().describe('Content to write'),
         createDirs: z.boolean().optional().default(true).describe('Create parent dirs if missing'),
       }),
+      getPath: ({ path: p }) => resolve(p),
+      isReadOnly: () => false,
+      isDestructive: () => true,
       execute: async ({ path: p, content, createDirs }) => {
         const full = resolve(p);
         if (createDirs) {
@@ -89,6 +105,8 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { ok: boolean; replacements: number; path: string }
     >({
       name: 'edit_file',
+      aliases: ['Edit'],
+      operation: 'write',
       description:
         'Edit a file by finding and replacing a string. ' +
         'By default replaces only the first occurrence; set replaceAll for all.',
@@ -98,6 +116,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
         newString: z.string().describe('Replacement string'),
         replaceAll: z.boolean().optional().default(false).describe('Replace all occurrences'),
       }),
+      getPath: ({ path: p }) => resolve(p),
+      isReadOnly: () => false,
+      isDestructive: () => true,
       execute: async ({ path: p, oldString, newString, replaceAll }) => {
         const full = resolve(p);
         let content = await fs.readFile(full, 'utf8');
@@ -123,6 +144,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { entries: { name: string; type: string; size: number }[] }
     >({
       name: 'list_directory',
+      aliases: ['LS', 'Glob'],
+      operation: 'read',
+      maxResultSizeChars: 120_000,
       description:
         'List files and directories. Optionally filter by glob pattern and recurse.',
       parameters: z.object({
@@ -130,6 +154,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
         pattern: z.string().optional().describe('Glob pattern to filter (e.g. "*.ts")'),
         recursive: z.boolean().optional().default(false).describe('Recurse into subdirectories'),
       }),
+      getPath: ({ path: p }) => resolve(p),
+      isReadOnly: () => true,
+      isDestructive: () => false,
       execute: async ({ path: p, pattern, recursive }) => {
         const dir = resolve(p);
         const entries: { name: string; type: string; size: number }[] = [];
@@ -170,6 +197,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { matches: { file: string; line: number; content: string }[] }
     >({
       name: 'grep',
+      aliases: ['Grep'],
+      operation: 'read',
+      maxResultSizeChars: 120_000,
       description:
         'Search file contents using a regex pattern. Returns matching lines with context.',
       parameters: z.object({
@@ -178,6 +208,9 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
         extensions: z.array(z.string()).optional().describe('File extensions to include'),
         maxResults: z.number().int().positive().optional().default(100).describe('Max results'),
       }),
+      getPath: ({ path: p }) => resolve(p ?? '.'),
+      isReadOnly: () => true,
+      isDestructive: () => false,
       execute: async ({ pattern, path: p, extensions, maxResults }) => {
         const target = resolve(p ?? '.');
         const re = new RegExp(pattern, 'gi');
@@ -242,12 +275,17 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { ok: boolean; path: string; hunksApplied: number }
     >({
       name: 'apply_patch',
+      aliases: ['Patch'],
+      operation: 'write',
       description:
         'Apply a unified diff patch to a file. The patch should be in standard unified diff format.',
       parameters: z.object({
         path: z.string().describe('File path to patch'),
         patch: z.string().describe('Unified diff content'),
       }),
+      getPath: ({ path: p }) => resolve(p),
+      isReadOnly: () => false,
+      isDestructive: () => true,
       execute: async ({ path: p, patch }) => {
         const full = resolve(p);
         let content: string;
@@ -271,10 +309,14 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
       { path: string; size: number; modified: string; created: string; isFile: boolean; isDirectory: boolean; extension: string }
     >({
       name: 'file_info',
+      operation: 'read',
       description: 'Get file metadata: size, modification time, type.',
       parameters: z.object({
         path: z.string().describe('File or directory path'),
       }),
+      getPath: ({ path: p }) => resolve(p),
+      isReadOnly: () => true,
+      isDestructive: () => false,
       execute: async ({ path: p }) => {
         const full = resolve(p);
         const stat = await fs.stat(full);
@@ -289,7 +331,10 @@ export function fileToolSet(opts: FileToolsOptions = {}): ToolSet {
         };
       },
     }),
-  ]);
+  ], {
+    permissionManager: opts.permissionManager,
+    permissions: opts.permissions,
+  });
 }
 
 // ---------------------------------------------------------------------------

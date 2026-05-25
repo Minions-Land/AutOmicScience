@@ -1,6 +1,6 @@
 /**
  * Full population store with lineage tracking, island model, and persistence.
- * Equivalent to PantheonOS evolution/database.py.
+ * Equivalent to AutOmicScience evolution/database.py.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'fs';

@@ -5,6 +5,7 @@ export interface Store {
   install(id: string, version?: string): Promise<string[]>;
   uninstall(id: string): Promise<string[]>;
   publish(entry: StoreEntry & { content: string }): Promise<void>;
+  deletePackage(id: string): Promise<boolean>;
   list(category?: StoreEntry['category']): Promise<StoreEntry[]>;
   getPackage(id: string): Promise<StoreEntry | undefined>;
 }

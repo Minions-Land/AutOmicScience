@@ -33,7 +33,7 @@ export class LearningStore {
   private loaded = false;
 
   constructor(storePath?: string) {
-    this.storePath = storePath ?? join(homedir(), '.medrix', 'learning');
+    this.storePath = storePath ?? join(homedir(), '.aos', 'learning');
   }
 
   private async ensureDir(): Promise<void> {

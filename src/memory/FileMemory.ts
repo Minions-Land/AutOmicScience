@@ -9,7 +9,7 @@ import type { Memory } from './Memory.js';
  *
  * Short-term messages are stored as JSON Lines (JSONL) at:
  *   <dir>/<agentName>.jsonl
- * (default dir: ~/.medrix/memory/agents)
+ * (default dir: ~/.aos/memory/agents)
  *
  * Long-term key/value facts are stored as a JSON sidecar:
  *   <dir>/<agentName>.kv.json
@@ -31,7 +31,7 @@ export class FileMemory implements Memory {
   constructor(agentName: string, dir?: string) {
     if (!agentName) throw new Error('FileMemory: agentName is required');
     this.agentName = agentName;
-    this.dir = dir ?? path.join(os.homedir(), '.medrix', 'memory', 'agents');
+    this.dir = dir ?? path.join(os.homedir(), '.aos', 'memory', 'agents');
     const safeName = agentName.replace(/[^a-zA-Z0-9._-]/g, '_');
     this.jsonlPath = path.join(this.dir, `${safeName}.jsonl`);
     this.kvPath = path.join(this.dir, `${safeName}.kv.json`);

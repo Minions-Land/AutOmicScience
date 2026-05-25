@@ -61,7 +61,7 @@ export class DiscordAdapter implements ChannelAdapter {
       d: {
         token: this.token,
         intents: 513, // GUILDS + GUILD_MESSAGES
-        properties: { os: 'linux', browser: 'medrix', device: 'medrix' },
+        properties: { os: 'linux', browser: 'aos', device: 'aos' },
       },
     }));
   }

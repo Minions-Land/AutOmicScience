@@ -1,7 +1,7 @@
 /**
  * Full evolution driver integrating LLM mutation, island model,
  * database persistence, and visualization.
- * Equivalent to PantheonOS evolution/team.py.
+ * Equivalent to AutOmicScience evolution/team.py.
  */
 
 import type { Program } from './Program.js';

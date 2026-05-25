@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export CANCHEN_MAS_ROOT="${CANCHEN_MAS_ROOT:-${REPO_ROOT}}"
+export AOS_MAS_ROOT="${AOS_MAS_ROOT:-${REPO_ROOT}}"
 export PYTHONPATH="${REPO_ROOT}/src:${PYTHONPATH:-}"
 
 python -m scmas build-label-maps

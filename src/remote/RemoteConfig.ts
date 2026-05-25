@@ -13,6 +13,6 @@ export interface RemoteConfig {
 /** Default remote configuration. */
 export const defaultRemoteConfig: RemoteConfig = {
   natsUrl: 'nats://localhost:4222',
-  namespace: 'medrix',
+  namespace: 'aos',
   timeout: 30_000,
 };

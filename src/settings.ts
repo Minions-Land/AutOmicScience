@@ -7,16 +7,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export const PROJECT_ROOT = process.cwd();
-export const MEDRIX_DIR = process.env.MEDRIX_DIR ?? join(homedir(), '.medrix');
-export const CONFIG_FILE = join(MEDRIX_DIR, 'settings.json');
-export const CLI_HISTORY_FILE = join(MEDRIX_DIR, 'cli_history');
+export const AOS_DIR = process.env.AOS_DIR ?? join(homedir(), '.aos');
+export const CONFIG_FILE = join(AOS_DIR, 'settings.json');
+export const CLI_HISTORY_FILE = join(AOS_DIR, 'cli_history');
 
 export const FILE_COMPLETION_IGNORED = new Set([
   '.git', '.svn', '.hg',
   '__pycache__', '.pytest_cache', '.mypy_cache',
   'node_modules',
   'dist', 'build',
-  '.medrix', '.endpoint-logs',
+  '.aos', '.endpoint-logs',
 ]);
 
 function stripJsoncComments(content: string): string {
@@ -81,8 +81,8 @@ export class Settings {
 
   constructor(workDir?: string) {
     this.workDir = workDir ?? PROJECT_ROOT;
-    this.userHome = MEDRIX_DIR;
-    this.projectDir = join(this.workDir, '.medrix');
+    this.userHome = AOS_DIR;
+    this.projectDir = join(this.workDir, '.aos');
   }
 
   get agentsDir(): string { return join(this.userHome, 'agents'); }
@@ -131,7 +131,7 @@ export class Settings {
   }
 
   private applyEnvOverrides(): void {
-    if (process.env.MEDRIX_MODEL) this._settings.model = process.env.MEDRIX_MODEL;
+    if (process.env.AOS_MODEL) this._settings.model = process.env.AOS_MODEL;
     if (process.env.OPENAI_API_KEY) {
       if (!this._settings.apiKeys) this._settings.apiKeys = {};
       this._settings.apiKeys.openai = process.env.OPENAI_API_KEY;
@@ -176,7 +176,7 @@ export class Settings {
   }
 
   getModel(): string {
-    return (this.get('model') as string) ?? process.env.MEDRIX_MODEL ?? 'gpt-4o';
+    return (this.get('model') as string) ?? process.env.AOS_MODEL ?? 'gpt-5.5';
   }
 
   getApiKey(provider: string): string | undefined {

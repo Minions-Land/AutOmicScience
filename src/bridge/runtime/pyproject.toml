@@ -1,7 +1,7 @@
 [project]
-name = "medrixai-bridge"
+name = "automic-science-bridge"
 version = "0.1.0"
-description = "MedrixAI Python bridge runtime — scientific compute backend for the TypeScript framework. Provides single-cell annotation, scFM adapters, and bioinformatics workflows."
+description = "AutOmicScience Python bridge runtime — scientific compute backend for the TypeScript framework. Provides single-cell annotation, scFM adapters, and bioinformatics workflows."
 requires-python = ">=3.10"
 dependencies = [
   "anndata",
@@ -37,7 +37,7 @@ r = [
 ]
 
 [project.scripts]
-medrixai-bridge = "novaeve_agent.cli:main"
+automic-science-bridge = "aos_agent.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
@@ -49,4 +49,4 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["novaeve_agent*"]
+include = ["aos_agent*"]

@@ -250,13 +250,13 @@ dependencies:
 - pandas
 artifacts:
   checkpoint:
-    path: ${CANCHEN_MAS_UCE_4L_DIR}/4layer_model.torch
+    path: ${AOS_MAS_UCE_4L_DIR}/4layer_model.torch
     required: true
   tokens:
-    path: ${CANCHEN_MAS_UCE_4L_DIR}/all_tokens.torch
+    path: ${AOS_MAS_UCE_4L_DIR}/all_tokens.torch
     required: true
   species_table:
-    path: ${CANCHEN_MAS_UCE_4L_DIR}/species_chrom.csv
+    path: ${AOS_MAS_UCE_4L_DIR}/species_chrom.csv
     required: true
 executor_defaults:
   embedding_method: uce_4l_raw

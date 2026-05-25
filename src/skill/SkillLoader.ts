@@ -3,6 +3,14 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { Skill, SkillLoader } from './Skill.js';
 
+export interface SkillManifestEntry {
+  name: string;
+  description: string;
+  path: string;
+  source: 'builtin' | 'user' | 'project' | 'file';
+  active?: boolean;
+}
+
 /**
  * Loads skills from one of two formats:
  *  - .md  — the body becomes `instructions`. Optional YAML-ish front-matter:
@@ -21,31 +29,86 @@ export class FileSkillLoader implements SkillLoader {
     return this.loadModule(resolved);
   }
 
-  private async resolve(pathOrName: string): Promise<string> {
-    try {
-      await fs.access(pathOrName);
-      return path.resolve(pathOrName);
-    } catch {
-      // fall through to search dirs
-    }
+  async read(pathOrName: string): Promise<Skill & { path: string }> {
+    const resolved = await this.resolve(pathOrName);
+    const skill = resolved.endsWith('.md')
+      ? await this.loadMarkdown(resolved)
+      : await this.loadModule(resolved);
+    return { ...skill, path: resolved };
+  }
+
+  async list(): Promise<SkillManifestEntry[]> {
+    const seen = new Set<string>();
+    const entries: SkillManifestEntry[] = [];
     for (const dir of this.searchDirs) {
-      for (const ext of ['.md', '.ts', '.js', '.mjs']) {
-        const candidate = path.join(dir, `${pathOrName}${ext}`);
-        try {
-          await fs.access(candidate);
-          return candidate;
-        } catch {
-          // continue
+      let children: string[];
+      try {
+        children = await fs.readdir(dir);
+      } catch {
+        continue;
+      }
+      for (const child of children) {
+        const candidates = [
+          path.join(dir, child),
+          path.join(dir, child, 'SKILL.md'),
+        ];
+        for (const candidate of candidates) {
+          const file = await resolveSkillFile(candidate);
+          if (!file || seen.has(file)) continue;
+          seen.add(file);
+          entries.push(await this.describeFile(file, dir));
         }
+      }
+    }
+    return entries.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  private async resolve(pathOrName: string): Promise<string> {
+    const direct = await resolveSkillFile(pathOrName);
+    if (direct) return direct;
+    for (const dir of this.searchDirs) {
+      const candidates = [
+        path.join(dir, pathOrName),
+        path.join(dir, pathOrName, 'SKILL.md'),
+        ...['.md', '.ts', '.js', '.mjs'].map((ext) => path.join(dir, `${pathOrName}${ext}`)),
+      ];
+      for (const candidate of candidates) {
+        const file = await resolveSkillFile(candidate);
+        if (file) return file;
       }
     }
     throw new Error(`Skill not found: ${pathOrName}`);
   }
 
+  private async describeFile(file: string, searchDir: string): Promise<SkillManifestEntry> {
+    if (file.endsWith('.md')) {
+      const raw = await fs.readFile(file, 'utf8');
+      const { meta } = parseFrontMatter(raw);
+      const fallbackName = path.basename(file, path.extname(file)) === 'SKILL'
+        ? path.basename(path.dirname(file))
+        : path.basename(file, path.extname(file));
+      return {
+        name: meta.name ?? fallbackName,
+        description: meta.description ?? `Skill loaded from ${path.basename(file)}`,
+        path: file,
+        source: classifySkillSource(searchDir),
+      };
+    }
+    const skill = await this.loadModule(file);
+    return {
+      name: skill.name,
+      description: skill.description,
+      path: file,
+      source: classifySkillSource(searchDir),
+    };
+  }
+
   private async loadMarkdown(file: string): Promise<Skill> {
     const raw = await fs.readFile(file, 'utf8');
     const { meta, body } = parseFrontMatter(raw);
-    const fallbackName = path.basename(file, path.extname(file));
+    const fallbackName = path.basename(file, path.extname(file)) === 'SKILL'
+      ? path.basename(path.dirname(file))
+      : path.basename(file, path.extname(file));
     return {
       name: meta.name ?? fallbackName,
       description: meta.description ?? `Skill loaded from ${path.basename(file)}`,
@@ -62,6 +125,36 @@ export class FileSkillLoader implements SkillLoader {
     }
     return skill as Skill;
   }
+}
+
+async function resolveSkillFile(candidate: string): Promise<string | null> {
+  try {
+    const stat = await fs.stat(candidate);
+    if (stat.isDirectory()) {
+      for (const name of ['SKILL.md', 'skill.md']) {
+        const nested = path.join(candidate, name);
+        try {
+          await fs.access(nested);
+          return path.resolve(nested);
+        } catch {
+          // Try next conventional skill filename.
+        }
+      }
+      return null;
+    }
+    if (/\.(md|ts|js|mjs)$/i.test(candidate)) return path.resolve(candidate);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function classifySkillSource(searchDir: string): SkillManifestEntry['source'] {
+  const normalized = searchDir.replace(/\\/g, '/').toLowerCase();
+  if (normalized.includes('/src/skill/builtin')) return 'builtin';
+  if (normalized.includes('/.aos/skills')) return 'user';
+  if (normalized.endsWith('/skills')) return 'project';
+  return 'file';
 }
 
 function parseFrontMatter(raw: string): { meta: Record<string, string>; body: string } {

@@ -250,13 +250,13 @@ dependencies:
 - scgpt
 artifacts:
   checkpoint:
-    path: ${CANCHEN_MAS_SCGPT_DIR}/brain/best_model.pt
+    path: ${AOS_MAS_SCGPT_DIR}/brain/best_model.pt
     required: true
   vocab:
-    path: ${CANCHEN_MAS_SCGPT_DIR}/brain/vocab.json
+    path: ${AOS_MAS_SCGPT_DIR}/brain/vocab.json
     required: true
   args:
-    path: ${CANCHEN_MAS_SCGPT_DIR}/brain/args.json
+    path: ${AOS_MAS_SCGPT_DIR}/brain/args.json
     required: true
 executor_defaults:
   embedding_method: scgpt_brain_raw

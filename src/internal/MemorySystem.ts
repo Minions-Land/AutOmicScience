@@ -63,7 +63,7 @@ export class MemoryStore {
   private loaded = false;
 
   constructor(storePath?: string) {
-    this.storePath = storePath ?? join(homedir(), '.medrix', 'memory');
+    this.storePath = storePath ?? join(homedir(), '.aos', 'memory');
   }
 
   private async ensureDir(): Promise<void> {
@@ -338,7 +338,7 @@ export interface MemorySystemConfig {
 /**
  * MemoryRuntime manages the full memory lifecycle:
  * - Extracts key facts/decisions from conversations
- * - Persists to ~/.medrix/memory/
+ * - Persists to ~/.aos/memory/
  * - Retrieves relevant memories for new conversations
  * - Scores by recency and relevance
  * - Consolidates memories periodically

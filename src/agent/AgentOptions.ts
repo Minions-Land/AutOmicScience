@@ -3,6 +3,9 @@ import type { McpPlugin } from '../mcp/McpPlugin.js';
 import type { Skill } from '../skill/Skill.js';
 import type { ToolSet } from '../toolset/ToolSet.js';
 import type { LLMProvider } from '../provider/Provider.js';
+import type { MessageCompressor } from './compression/Compressor.js';
+import type { HookManager } from '../hooks/index.js';
+import type { ProjectInstructionOptions } from '../project/index.js';
 
 export interface AgentOptions {
   name?: string;
@@ -11,9 +14,14 @@ export interface AgentOptions {
   provider?: LLMProvider;
   toolset?: ToolSet;
   skills?: Skill[];
+  /** Directories searched by the built-in skill management tools. */
+  skillSearchDirs?: string[];
   mcpPlugins?: McpPlugin[];
   memory?: Memory;
+  compressor?: MessageCompressor;
   systemPrompt?: string;
+  projectInstructions?: boolean | ProjectInstructionOptions;
+  hooks?: HookManager;
   temperature?: number;
   maxTokens?: number;
   maxIterations?: number;

@@ -257,7 +257,7 @@ dependencies:
 - anndata
 artifacts:
   checkpoint_dir:
-    path: ${CANCHEN_MAS_FOUNDATION_CHECKPOINT_ROOT}/scANVI/SEA_AD_MTP_ST/checkpoints/s3028/scanvi_class
+    path: ${AOS_MAS_FOUNDATION_CHECKPOINT_ROOT}/scANVI/SEA_AD_MTP_ST/checkpoints/s3028/scanvi_class
     required: false
 data_constraints:
   compatible_contract: seaad_140_npz

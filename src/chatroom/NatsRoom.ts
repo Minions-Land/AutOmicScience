@@ -22,7 +22,7 @@ export class NatsRoom extends Room {
   }
 
   private subjectFor(subject: string): string {
-    return `medrix.room.${this.name}.${subject}`;
+    return `aos.room.${this.name}.${subject}`;
   }
 
   private async ensure(): Promise<void> {

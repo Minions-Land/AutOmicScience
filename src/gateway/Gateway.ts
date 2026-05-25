@@ -3,7 +3,7 @@ import type { GatewayMessage } from './GatewayMessage.js';
 
 /**
  * Multi-channel gateway that connects external messaging platforms
- * (Slack, Telegram, Discord, Lark, WeChat, webhooks) to MedrixAI agents.
+ * (Slack, Telegram, Discord, Lark, WeChat, webhooks) to AutOmicScience agents.
  */
 export interface Gateway {
   /** Connect a new channel to the gateway. */

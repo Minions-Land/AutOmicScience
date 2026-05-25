@@ -96,7 +96,7 @@ export interface WebToolsOptions {
 }
 
 export function webToolSet(opts: WebToolsOptions = {}): ToolSet {
-  const userAgent = opts.userAgent ?? 'MedrixAI/1.0 (https://github.com/medrixai)';
+  const userAgent = opts.userAgent ?? 'AutOmicScience/1.0 (https://github.com/automic-science)';
   const defaultTimeout = opts.timeoutMs ?? 30_000;
   const downloadDir = opts.downloadDir ?? process.cwd();
   const limiter = new RateLimiter(opts.maxRequestsPerSecond ?? 5, 1000);

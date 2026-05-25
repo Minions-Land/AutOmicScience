@@ -4,7 +4,7 @@ import type { ToolSet } from '../toolset/ToolSet.js';
 import { logger } from '../utils/logger.js';
 
 /**
- * REST/SSE HTTP endpoint for invoking MedrixAI agents over HTTP.
+ * REST/SSE HTTP endpoint for invoking AutOmicScience agents over HTTP.
  *
  * Routes:
  *   GET  /health              — health check

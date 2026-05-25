@@ -45,7 +45,7 @@ interface ImageGenResult {
 }
 
 function getImageStoreDir(): string {
-  const dir = join(homedir(), '.medrix', 'images');
+  const dir = join(homedir(), '.aos', 'images');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   return dir;
 }

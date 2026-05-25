@@ -35,7 +35,7 @@ export interface BuiltinAgentOptions extends Omit<AgentOptions, 'systemPrompt' |
 export async function createSelectorAgent(opts: BuiltinAgentOptions): Promise<Agent> {
   const systemPrompt = opts.systemPromptOverride ?? (await readPrompt('selector.system.md'));
   return new Agent({
-    name: 'medrix-selector',
+    name: 'aos-selector',
     ...opts,
     systemPrompt,
     toolset: opts.toolset ?? annotationStageToolSet(opts.bridge),
@@ -50,7 +50,7 @@ export async function createSelectorAgent(opts: BuiltinAgentOptions): Promise<Ag
 export async function createAdapterAgent(opts: BuiltinAgentOptions): Promise<Agent> {
   const systemPrompt = opts.systemPromptOverride ?? (await readPrompt('adapter.system.md'));
   return new Agent({
-    name: 'medrix-adapter',
+    name: 'aos-adapter',
     ...opts,
     systemPrompt,
     toolset: opts.toolset ?? annotationStageToolSet(opts.bridge),
@@ -64,7 +64,7 @@ export async function createAdapterAgent(opts: BuiltinAgentOptions): Promise<Age
 export async function createAdjudicatorAgent(opts: BuiltinAgentOptions): Promise<Agent> {
   const systemPrompt = opts.systemPromptOverride ?? (await readPrompt('adjudicator.system.md'));
   return new Agent({
-    name: 'medrix-adjudicator',
+    name: 'aos-adjudicator',
     ...opts,
     systemPrompt,
     toolset: opts.toolset ?? annotationStageToolSet(opts.bridge),

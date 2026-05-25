@@ -13,7 +13,7 @@ from sklearn.linear_model import LogisticRegression
 
 
 PROJECT_ROOT = Path(
-    os.environ.get("CANCHEN_MAS_FOUNDATION_MAS_ROOT", Path(__file__).resolve().parents[2])
+    os.environ.get("AOS_MAS_FOUNDATION_MAS_ROOT", Path(__file__).resolve().parents[2])
 ).expanduser().resolve()
 
 import sys

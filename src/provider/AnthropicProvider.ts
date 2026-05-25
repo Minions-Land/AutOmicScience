@@ -30,7 +30,8 @@ export class AnthropicProvider implements LLMProvider {
 
   async *chat(messages: Message[], options: ChatOptions): AsyncGenerator<ProviderStreamChunk> {
     const client = await this.ensureClient();
-    const { base, extendedThinking } = parseModelString(options.model);
+    const { base: parsedBase, extendedThinking } = parseModelString(options.model);
+    const base = parsedBase.replace(/^anthropic\//, '');
     const useThinking = extendedThinking || options.extendedThinking;
 
     const system = messages.filter((m) => m.role === 'system').map((m) => m.content).join('\n\n');
@@ -55,7 +56,7 @@ export class AnthropicProvider implements LLMProvider {
       params.thinking = { type: 'enabled', budget_tokens: 4096 };
     }
 
-    const stream = await client.messages.create(params);
+    const stream = await client.messages.create(params, options.signal ? { signal: options.signal } : undefined);
 
     let stopReason: string | undefined;
     const toolBuf = new Map<number, { id: string; name: string; argText: string }>();

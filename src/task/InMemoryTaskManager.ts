@@ -26,6 +26,10 @@ export class InMemoryTaskManager implements TaskManager {
       id,
       name: spec.name,
       state: 'pending',
+      type: spec.type,
+      description: spec.description,
+      metadata: spec.metadata,
+      progress: [],
     };
 
     const promise = this.execute(id, spec, abortController);
@@ -77,9 +81,9 @@ export class InMemoryTaskManager implements TaskManager {
     spec: TaskSpec,
     abortController: AbortController,
   ): Promise<TaskResult> {
-    const task = this.tasks.get(id);
     // Wait a microtask so the task is registered before execution starts
     await Promise.resolve();
+    const task = this.tasks.get(id);
 
     if (!task || abortController.signal.aborted) {
       const s = task?.status;
@@ -99,7 +103,12 @@ export class InMemoryTaskManager implements TaskManager {
     task.status.startedAt = Date.now();
 
     try {
-      const result = await spec.fn();
+      const result = await spec.fn({
+        signal: abortController.signal,
+        reportProgress: (progress) => {
+          task.status.progress = [...(task.status.progress ?? []), progress];
+        },
+      });
 
       if (abortController.signal.aborted) {
         task.status.state = 'cancelled';

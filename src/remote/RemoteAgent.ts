@@ -18,7 +18,7 @@ export interface RemoteAgent {
  * NATS-backed RemoteAgent that publishes invocation requests and
  * subscribes to the reply subject for streamed events.
  *
- * Publishes to: `medrix.remote.<namespace>.<agentName>.invoke`
+ * Publishes to: `aos.remote.<namespace>.<agentName>.invoke`
  */
 export class NatsRemoteAgent implements RemoteAgent {
   readonly name: string;
@@ -39,7 +39,7 @@ export class NatsRemoteAgent implements RemoteAgent {
     const nc = await connect({ servers: this.config.natsUrl });
     const codec = JSONCodec();
 
-    const subject = `medrix.remote.${this.config.namespace}.${this.name}.invoke`;
+    const subject = `aos.remote.${this.config.namespace}.${this.name}.invoke`;
     const replySubject = createInbox?.() ?? `_INBOX.${uid('reply')}`;
 
     try {

@@ -170,7 +170,7 @@ export class GatewayChannelManager {
 
   private helpMenu(): string {
     return [
-      'MedrixAI Gateway Commands',
+      'AutOmicScience Gateway Commands',
       '/help    - Show this menu',
       '/status  - Show route status',
       '/new     - Start a fresh conversation',

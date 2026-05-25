@@ -34,6 +34,7 @@ export interface ToolCall {
 export interface ToolResult {
   tool_call_id: string;
   content: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AgentEvent {
@@ -45,6 +46,7 @@ export interface ExecutionContext {
   agentName?: string;
   signal?: AbortSignal;
   metadata?: Record<string, unknown>;
+  onProgress?: (progress: unknown) => void | Promise<void>;
 }
 
 export interface ChatOptions {

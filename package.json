@@ -1,23 +1,23 @@
 {
-  "name": "medrix-ai",
+  "name": "automic-science",
   "version": "0.1.0",
-  "description": "MedrixAI — an evolvable, distributed multi-agent framework with a built-in bioinformatics annotation pipeline.",
+  "description": "AutOmicScience is a bioinformatics multi-agent system for autonomous omics analysis, model selection, and optional foundation-model/reference workflows.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "medrix": "dist/cli/index.js"
+    "aos": "dist/cli/index.js"
   },
   "exports": {
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/cli/index.ts",
-    "cli": "tsx src/cli/index.ts cli",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "build": "node node_modules/typescript/bin/tsc && node scripts/copy-ui-assets.mjs",
+    "dev": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts",
+    "cli": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts cli",
+    "test": "node node_modules/vitest/vitest.mjs run",
+    "test:watch": "node node_modules/vitest/vitest.mjs",
+    "typecheck": "node node_modules/typescript/bin/tsc --noEmit"
   },
   "engines": {
     "node": ">=20"

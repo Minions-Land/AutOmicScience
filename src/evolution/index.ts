@@ -1,5 +1,5 @@
 // Evolution module - full-featured evolutionary code optimization
-// Equivalent to PantheonOS pantheon/evolution/
+// Equivalent to AutOmicScience aos/evolution/
 
 // Core types and program model
 export * from './Program.js';
