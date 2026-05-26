@@ -1,5 +1,9 @@
 # AutOmicScience
 
+![AutOmicScience frontend console](docs/assets/automic-science-ui.png)
+
+![AutOmicScience CLI help](docs/assets/automic-science-cli.png)
+
 AutOmicScience (AOS) is a bioinformatics multi-agent system for omics analysis. It combines an engineering-oriented agent runtime, local tools, a browser console, and an optional Python bridge for single-cell annotation, model selection, foundation-model adapters, reference transfer, and consensus workflows.
 
 The core code is intentionally lightweight. Large foundation-model weights and biological reference collections are optional assets and are distributed separately from the Git repository.
