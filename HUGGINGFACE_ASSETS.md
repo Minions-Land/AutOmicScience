@@ -45,6 +45,8 @@ Then run from the repository root:
 node scripts/upload-hf-assets.mjs
 ```
 
+The script uses `hf upload-large-folder` for large asset directories so interrupted uploads can be resumed by rerunning the same command. Reference assets are uploaded from `src/bridge/runtime` with include filters so `data/`, `external/SEA-AD/`, and `vendor/.../UCE-main/data/` keep their expected paths.
+
 Token-based upload also works:
 
 ```bash

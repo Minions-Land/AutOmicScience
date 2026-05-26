@@ -17,6 +17,7 @@ const uploads = [
     type: 'model',
     source: 'hf-assets/foundation-models',
     target: '.',
+    mode: 'upload',
     message: 'Upload AutOmicScience foundation model repository metadata',
   },
   {
@@ -24,6 +25,7 @@ const uploads = [
     type: 'model',
     source: 'src/bridge/runtime/checkpoints/foundation_models',
     target: '.',
+    mode: 'large-folder',
     message: 'Upload AutOmicScience foundation model assets',
   },
   {
@@ -31,28 +33,21 @@ const uploads = [
     type: 'dataset',
     source: 'hf-assets/reference',
     target: '.',
+    mode: 'upload',
     message: 'Upload AutOmicScience reference repository metadata',
   },
   {
     repo: `${owner}/AutOmicScience-Reference`,
     type: 'dataset',
-    source: 'src/bridge/runtime/data',
-    target: 'data',
-    message: 'Upload AutOmicScience reference and query assets',
-  },
-  {
-    repo: `${owner}/AutOmicScience-Reference`,
-    type: 'dataset',
-    source: 'src/bridge/runtime/external/SEA-AD',
-    target: 'external/SEA-AD',
-    message: 'Upload AutOmicScience external SEA-AD assets',
-  },
-  {
-    repo: `${owner}/AutOmicScience-Reference`,
-    type: 'dataset',
-    source: 'src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/data',
-    target: 'vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/data',
-    message: 'Upload AutOmicScience UCE reference data',
+    source: 'src/bridge/runtime',
+    target: '.',
+    include: [
+      'data/**',
+      'external/SEA-AD/**',
+      'vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-main/data/**',
+    ],
+    mode: 'large-folder',
+    message: 'Upload AutOmicScience reference assets',
   },
 ];
 
@@ -108,15 +103,24 @@ for (const upload of uploads) {
     continue;
   }
 
-  const args = [
-    'upload',
-    upload.repo,
-    upload.source,
-    upload.target,
-    '--type',
-    upload.type,
-    '--commit-message',
-    upload.message,
-  ];
+  const args = upload.mode === 'large-folder'
+    ? [
+        'upload-large-folder',
+        upload.repo,
+        upload.source,
+        '--type',
+        upload.type,
+        ...(upload.include ?? []).flatMap((pattern) => ['--include', pattern]),
+      ]
+    : [
+        'upload',
+        upload.repo,
+        upload.source,
+        upload.target,
+        '--type',
+        upload.type,
+        '--commit-message',
+        upload.message,
+      ];
   run(withToken(args));
 }
