@@ -23,7 +23,7 @@ from aos_agent.stage4.consensus import UNKNOWN_LABEL, label_to_shared_coarse
 LEGACY_ROOT = paths.LEGACY_ROOT
 LEGACY_SCRIPT_DIR = paths.UCE_IMA_LEGACY_SCRIPT_DIR
 IMA_REFERENCE_PATH = paths.IMA_REFERENCE_H5AD
-IMA_CACHE_ROOT = paths.SCMAS_ROOT / "artifacts" / "reference_cache"
+IMA_CACHE_ROOT = paths.AOS_ROOT / "artifacts" / "reference_cache"
 UCE_MODEL_DIR = paths.UCE_33L_MODEL_DIR
 UCE_MODEL_FILE = "33l_8ep_1024t_1280.torch"
 MODEL_ID = "uce_33l_ima_knn"
@@ -194,7 +194,7 @@ def _write_adapter_spec(
     runtime: dict[str, Any],
 ) -> Path:
     spec = {
-        "schema_version": "scmas.adapter_spec.v1",
+        "schema_version": "aos.adapter_spec.v1",
         "react_policy": "deterministic_uce_ima_v1",
         "mode": "full" if int(runtime.get("max_query_cells", 0)) == 0 else "subset",
         "dataset_id": dataset_id,
@@ -202,7 +202,7 @@ def _write_adapter_spec(
         "query_adapter": "npz_kukanja",
         "model_id": MODEL_ID,
         "source_id": SOURCE_ID,
-        "capability_yaml": str(paths.SCMAS_ROOT / "configs" / "capability" / f"{MODEL_ID}.yaml"),
+        "capability_yaml": str(paths.AOS_ROOT / "configs" / "capability" / f"{MODEL_ID}.yaml"),
         "input_artifacts": {
             "query_path": str(query_path),
             "reference_path": str(IMA_REFERENCE_PATH),
@@ -223,7 +223,7 @@ def _write_adapter_spec(
         "runtime_payload": runtime,
         "actions": [
             {"action": "load_query_npz_kukanja", "path": str(query_path)},
-            {"action": "invoke_raw_embedding_transfer", "executor": "scmas.eval.uce_ima.run_uce_ima_label_transfer"},
+            {"action": "invoke_raw_embedding_transfer", "executor": "aos.eval.uce_ima.run_uce_ima_label_transfer"},
         ],
         "expected_outputs": {
             "model_run_dir": str(output_dir / "model_runs" / MODEL_ID),

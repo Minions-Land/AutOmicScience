@@ -33,14 +33,14 @@ from aos_agent.io import ensure_dir, normalize_gene_name, read_json, read_standa
 from aos_agent.llm_config import build_openai_client, default_llm_model
 
 
-DEFAULT_ARTIFACT_BUNDLE = paths.SCMAS_ROOT / "artifacts" / "stage1_full"
+DEFAULT_ARTIFACT_BUNDLE = paths.AOS_ROOT / "artifacts" / "stage1_full"
 DEFAULT_PREPARED_SOURCE_ROOT = paths.DATA_DIR / "prepared_sources"
 QUERY_PANEL_PREPARED_SOURCE_ROOT = paths.DATA_DIR / "prepared_sources_query_panel"
-DEFAULT_CAPABILITY_DIR = paths.SCMAS_ROOT / "configs" / "capability"
+DEFAULT_CAPABILITY_DIR = paths.AOS_ROOT / "configs" / "capability"
 DEFAULT_STAGE2_ROOT = paths.RUNS_DIR / "stage2_selection"
 DEFAULT_LLM_MODEL = default_llm_model()
 DEFAULT_EXCLUDED_MODEL_IDS = {"expression_log1p_knn", "expression_log1p_prototype"}
-DEFAULT_ENV_PATH = paths.SCMAS_ROOT / ".env"
+DEFAULT_ENV_PATH = paths.AOS_ROOT / ".env"
 DEFAULT_SELECTION_STRATEGY = "one_by_one"
 DEFAULT_SELECTION_OBJECTIVE = "unified_rank"
 LEGACY_SELECTION_OBJECTIVES = {"consensus", "best_single_ablation"}
@@ -370,7 +370,7 @@ def _build_gene_only_profile(
     gene_profile = _load_query_gene_profile(input_path)
     genes = [normalize_gene_name(g) for g in gene_profile["genes"]]
     return {
-        "schema_version": "scmas.stage2.query_profile.gene_only.v1",
+        "schema_version": "aos.stage2.query_profile.gene_only.v1",
         "query_visibility": "gene_names_only",
         "dataset_id": dataset_id,
         "input_path": str(input_path),
@@ -385,7 +385,7 @@ def _build_gene_only_profile(
 def _selector_visible_query_profile(query_profile: dict[str, Any]) -> dict[str, Any]:
     genes = [normalize_gene_name(g) for g in query_profile.get("genes", [])]
     return {
-        "schema_version": "scmas.stage2.selector_visible_query_profile.v1",
+        "schema_version": "aos.stage2.selector_visible_query_profile.v1",
         "query_visibility": "gene_names_only",
         "n_vars": len(genes),
         "genes": genes,
@@ -533,9 +533,9 @@ def _similarity(query_profile: dict[str, Any], source_profile: dict[str, Any]) -
 def _load_score_rows(artifact_bundle: Path) -> list[dict[str, str]]:
     score_path = artifact_bundle / "scores" / "full_model_variant_scores.csv"
     if not score_path.exists():
-        score_path = paths.SCMAS_ROOT / "reports" / "stage1_benchmark" / "full_model_variant_scores.csv"
+        score_path = paths.AOS_ROOT / "reports" / "stage1_benchmark" / "full_model_variant_scores.csv"
     if not score_path.exists():
-        score_path = paths.SCMAS_ROOT / "full_model_variant_scores.csv"
+        score_path = paths.AOS_ROOT / "full_model_variant_scores.csv"
     if not score_path.exists():
         return []
     with score_path.open(newline="", encoding="utf-8") as handle:
@@ -1217,7 +1217,7 @@ def _build_llm_observe(
                 break
 
     return {
-        "schema_version": "scmas.stage2.llm_observe.v1",
+        "schema_version": "aos.stage2.llm_observe.v1",
         "query_visibility": "gene_names_only",
         "query_identifier_redacted": True,
         "query_path_redacted": True,
@@ -1274,7 +1274,7 @@ def _build_llm_observe(
 def _render_llm_prompt(observe: dict[str, Any], *, previous: dict[str, Any] | None = None) -> tuple[str, str]:
     selection_objective = str(observe.get("selection_objective", DEFAULT_SELECTION_OBJECTIVE))
     system_prompt = (
-        "You are the scMAS stage-2 planner agent. Select source+model execution pairs for "
+        "You are the AutOmicScience stage-2 planner agent. Select source+model execution pairs for "
         "no-training cross-species annotation. You may use only query gene names plus provided reference/source "
         "and benchmark evidence. Do not infer from hidden query labels, query expression values, query path, "
         "query dataset id, query performance, or query-inference results. Species mismatch is not a hard filter. "
@@ -1422,7 +1422,7 @@ def _render_llm_reviewer_prompt(
     deterministic_review: dict[str, Any],
 ) -> tuple[str, str]:
     system_prompt = (
-        "You are the scMAS stage-2 reviewer agent. Audit a planner-selected model/source pair list. "
+        "You are the AutOmicScience stage-2 reviewer agent. Audit a planner-selected model/source pair list. "
         "You must use only the supplied observe payload, planner JSON, and deterministic review. "
         "Reject decisions that use hidden query labels, query expression, query identity/path, Stage3/Stage4 outcomes, "
         "manual objective switching, direct trained heads, or candidates outside the table. Return only JSON."

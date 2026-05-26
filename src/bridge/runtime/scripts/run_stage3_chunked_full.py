@@ -81,7 +81,7 @@ def prepare_kukanja_chunks(
 
 
 def _run_chunk(task: dict[str, Any]) -> dict[str, Any]:
-    os.environ.setdefault("SCMAS_EMBEDDING_CACHE", "1")
+    os.environ.setdefault("AOS_EMBEDDING_CACHE", "1")
     os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
     run_dir = ensure_dir(task["run_dir"])

@@ -12,7 +12,7 @@ from aos_agent.io import ensure_dir, read_json, write_json
 from aos_agent.scdesign3.discover import discover_existing_seaad_variants, discover_new_synthetic_variants
 
 
-REPORTS_DIR = paths.SCMAS_ROOT / "reports"
+REPORTS_DIR = paths.AOS_ROOT / "reports"
 
 
 def _exists(path: str | Path) -> bool:

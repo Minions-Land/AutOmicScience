@@ -14,11 +14,11 @@ from aos_agent.io import ensure_dir, write_json
 
 
 CACHE_VERSION = "embedding-cache-v1"
-DEFAULT_CACHE_ROOT = paths.SCMAS_ROOT / "artifacts" / "embedding_cache"
+DEFAULT_CACHE_ROOT = paths.AOS_ROOT / "artifacts" / "embedding_cache"
 
 
 def embedding_cache_enabled() -> bool:
-    value = os.environ.get("SCMAS_EMBEDDING_CACHE", "1").strip().lower()
+    value = os.environ.get("AOS_EMBEDDING_CACHE", "1").strip().lower()
     return value not in {"0", "false", "no", "off", "disable", "disabled"}
 
 

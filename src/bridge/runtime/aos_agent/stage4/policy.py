@@ -14,7 +14,7 @@ from aos_agent.io import write_json
 from aos_agent.llm_config import build_openai_client, default_llm_model
 
 
-DEFAULT_ENV_PATH = paths.SCMAS_ROOT / ".env"
+DEFAULT_ENV_PATH = paths.AOS_ROOT / ".env"
 # Legacy summary field kept only for audit continuity; stage-4 selection no longer
 # uses fixed agreement thresholds or hand-tuned method families.
 HIGH_CONSENSUS_MODEL_AGREEMENT = 0.85
@@ -800,7 +800,7 @@ def select_policy_method(
         probe_context["deployable_function_calls"] = deployable_function_calls
         selection_context_payload["probe"] = probe_context
     observe = {
-        "schema_version": "scmas.stage4.policy_observe.v1",
+        "schema_version": "aos.stage4.policy_observe.v1",
         "policy": {
             "query_labels_available_to_planner": False,
             "metrics_with_query_truth_available_to_planner": False,
@@ -826,7 +826,7 @@ def select_policy_method(
     }
     write_json(observe, trace_dir / "observe.json")
     system_prompt = (
-        "You are the scMAS stage-4 planner agent. Choose one deployment function call for full execution "
+        "You are the AutOmicScience stage-4 planner agent. Choose one deployment function call for full execution "
         "using only label-free probe evidence, stage-2 selection evidence, stage-3 model summaries, and "
         "reference-geometry availability. Do not use or request query truth labels or query-truth metrics. "
         "Pick a family champion, not an arbitrary method from the full registry. Return only JSON."

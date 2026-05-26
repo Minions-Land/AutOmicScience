@@ -38,7 +38,7 @@ def env_int(name: str, default: int) -> int:
 
 
 def default_llm_model(fallback: str = "gpt-5.5") -> str:
-    return first_env(("SCMAS_LLM_MODEL", "OPENAI_MODEL", "LLM_MODEL"), fallback)
+    return first_env(("AOS_LLM_MODEL", "OPENAI_MODEL", "LLM_MODEL"), fallback)
 
 
 def build_openai_client() -> Any:

@@ -7,6 +7,7 @@ The core code is intentionally lightweight. Large foundation-model weights and b
 ## Repositories
 
 - Code: https://github.com/PoorOtterBob/AutOmicScience
+- Code mirror: https://github.com/Minions-Land/AutOmicScience
 - Optional assets: https://huggingface.co/PoorOtterBob
 
 Recommended Hugging Face layout:
@@ -70,6 +71,24 @@ npm run dev -- run "List the available Bio MAS tools and explain when to use eac
 ```
 
 After build, the package exposes the `aos` bin from `dist/cli/index.js`.
+
+## Interface Checks
+
+CLI checks:
+
+```bash
+node dist/cli/index.js --version
+node dist/cli/index.js --help
+node dist/cli/index.js annotate bio-mas-preflight
+```
+
+Frontend checks:
+
+```bash
+npm run dev -- serve --port 3127
+```
+
+Open `http://localhost:3127` and `http://localhost:3127/aos/`. The UI uses AutOmicScience/AOS text branding only; the previous company logo image and favicon route are intentionally removed.
 
 ## Model Provider Configuration
 
@@ -312,5 +331,6 @@ npm run dev -- annotate bio-mas-preflight
 
 - User configuration is stored under `~/.aos` by default.
 - Project-local compatibility state can be stored under `.aos/aos-compat`.
-- The frontend logo image has been removed; the UI uses text branding.
+- Frontend and CLI user-facing names should remain AutOmicScience/AOS.
+- The frontend logo image has been removed; the UI uses text branding and no commercial company logo.
 - `src/bridge/runtime/data`, `src/bridge/runtime/checkpoints`, `src/bridge/runtime/artifacts`, and `runs` are runtime/asset locations and should not be treated as required code for a lightweight install.

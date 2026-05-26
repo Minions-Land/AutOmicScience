@@ -349,7 +349,7 @@ class UCE4LRawEmbedding:
         import torch.nn as nn
 
         model_path = paths.UCE_MODEL_PY
-        spec = importlib.util.spec_from_file_location("scmas_uce4_model", model_path)
+        spec = importlib.util.spec_from_file_location("aos_uce4_model", model_path)
         if spec is None or spec.loader is None:
             raise ImportError(f"Cannot import UCE model from {model_path}")
         module = importlib.util.module_from_spec(spec)
@@ -514,7 +514,7 @@ class UCE33LRawEmbedding(UCE4LRawEmbedding):
         import torch.nn as nn
 
         model_path = paths.UCE_MODEL_PY
-        spec = importlib.util.spec_from_file_location("scmas_uce33_model", model_path)
+        spec = importlib.util.spec_from_file_location("aos_uce33_model", model_path)
         if spec is None or spec.loader is None:
             raise ImportError(f"Cannot import UCE model from {model_path}")
         module = importlib.util.module_from_spec(spec)

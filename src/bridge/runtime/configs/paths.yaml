@@ -1,6 +1,6 @@
 # Portable path defaults. Override these with environment variables when data or
 # foundation-model checkpoints live outside the repository.
-scmas_root: ${AOS_MAS_ROOT}
+aos_root: ${AOS_MAS_ROOT}
 foundation_mas_root: ${AOS_MAS_FOUNDATION_MAS_ROOT}
 foundation_checkpoint_root: ${AOS_MAS_FOUNDATION_CHECKPOINT_ROOT}
 

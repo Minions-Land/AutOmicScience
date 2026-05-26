@@ -310,8 +310,8 @@ def _prepared_source_cell_ids(h5ad_path: Path) -> list[str]:
         if getattr(adata, "file", None) is not None:
             adata.file.close()
 
-    if "is_scmas_dummy" in obs.columns:
-        dummy = obs["is_scmas_dummy"].astype(str).str.lower().isin({"true", "1", "yes"})
+    if "is_aos_dummy" in obs.columns:
+        dummy = obs["is_aos_dummy"].astype(str).str.lower().isin({"true", "1", "yes"})
         obs = obs.loc[~dummy].copy()
     if "source_cell_id" in obs.columns:
         return obs["source_cell_id"].astype(str).tolist()
@@ -2294,7 +2294,7 @@ def run_consensus(
     pd.DataFrame(probe_diagnostics).to_csv(paths_out["method_diagnostics"], index=False)
     pd.DataFrame(probe_diagnostics).to_csv(paths_out["probe_method_diagnostics"], index=False)
     function_call_payload = {
-        "schema_version": "scmas.stage4.fusion_function_calls.v1",
+        "schema_version": "aos.stage4.fusion_function_calls.v1",
         "dataset_id": dataset_id,
         "mode": mode,
         "execution_strategy": execution_strategy,
@@ -2310,7 +2310,7 @@ def run_consensus(
     pd.DataFrame(method_metadata.get("_function_calls", [])).to_csv(paths_out["fusion_function_calls_csv"], index=False)
     write_json(
         {
-            "schema_version": "scmas.stage4.probe_function_calls.v1",
+            "schema_version": "aos.stage4.probe_function_calls.v1",
             "dataset_id": dataset_id,
             "mode": mode,
             "execution_strategy": execution_strategy,

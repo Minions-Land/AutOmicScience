@@ -161,7 +161,7 @@ def bio_mas_preflight(
         },
         "recommended_env": {
             "AOS_PYTHON_BIN": recommended_python,
-            "AOS_PYTHON_RUNTIME": str(paths.SCMAS_ROOT),
+            "AOS_PYTHON_RUNTIME": str(paths.AOS_ROOT),
             "Rscript": r_status.get("path", ""),
         },
         "modules": module_groups,

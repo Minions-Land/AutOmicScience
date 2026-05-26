@@ -26,7 +26,7 @@ def _add_common_size_args(parser: argparse.ArgumentParser) -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="aos_agent", description="scMAS multi-stage annotation workflow")
+    parser = argparse.ArgumentParser(prog="aos_agent", description="AutOmicScience multi-stage annotation workflow")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("build-label-maps", help="Build SEA-AD label/gene maps.")
@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--seed", type=int, default=3028)
 
     p = sub.add_parser("build-dataset-catalog", help="Write a dataset role/source table for stage-1 planning and smoke runs.")
-    p.add_argument("--output-dir", default=str(paths.SCMAS_ROOT / "reports"))
+    p.add_argument("--output-dir", default=str(paths.AOS_ROOT / "reports"))
     p.add_argument("--no-shape-probe", action="store_true")
 
     p = sub.add_parser("raw-label-transfer-smoke", help="No-training label transfer over new scDesign3 variants.")
@@ -96,7 +96,7 @@ def main(argv: list[str] | None = None) -> None:
 
     p = sub.add_parser("evaluate", help="Run model registry over prepared real/synthetic datasets.")
     p.add_argument("--output-dir", default=str(paths.RUNS_DIR / "stage1_eval"))
-    p.add_argument("--registry", default=str(paths.SCMAS_ROOT / "configs" / "model_registry.yaml"))
+    p.add_argument("--registry", default=str(paths.AOS_ROOT / "configs" / "model_registry.yaml"))
     p.add_argument("--dataset-manifest", default="")
     p.add_argument("--no-new-synthetic", action="store_true")
     p.add_argument("--model", action="append", dest="models", default=[])
@@ -118,9 +118,9 @@ def main(argv: list[str] | None = None) -> None:
     p = sub.add_parser("select-models", help="Select no-training source+model pairs for a profiled query dataset.")
     p.add_argument("--query-profile", required=True)
     p.add_argument("--output-dir", default="")
-    p.add_argument("--artifact-bundle", default=str(paths.SCMAS_ROOT / "artifacts" / "stage1_full"))
+    p.add_argument("--artifact-bundle", default=str(paths.AOS_ROOT / "artifacts" / "stage1_full"))
     p.add_argument("--prepared-source-root", default=str(paths.DATA_DIR / "prepared_sources"))
-    p.add_argument("--capability-dir", default=str(paths.SCMAS_ROOT / "configs" / "capability"))
+    p.add_argument("--capability-dir", default=str(paths.AOS_ROOT / "configs" / "capability"))
     p.add_argument("--top-k", type=int, default=3, help="Backward-compatible alias for --num-models.")
     p.add_argument("--num-models", type=int, default=None, help="Number of model/source pairs Stage 2 should select.")
     p.add_argument("--min-shared-genes", type=int, default=30)
@@ -157,8 +157,8 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--batch-size", type=int, default=0)
 
     p = sub.add_parser("inspect-model-contracts", help="Inspect capability YAML, registry artifacts, and wrapper signatures.")
-    p.add_argument("--capability-dir", default=str(paths.SCMAS_ROOT / "configs" / "capability"))
-    p.add_argument("--registry", default=str(paths.SCMAS_ROOT / "configs" / "model_registry.yaml"))
+    p.add_argument("--capability-dir", default=str(paths.AOS_ROOT / "configs" / "capability"))
+    p.add_argument("--registry", default=str(paths.AOS_ROOT / "configs" / "model_registry.yaml"))
     p.add_argument("--output-dir", default="")
 
     p = sub.add_parser("adapt-and-execute", help="Run stage-3 adapter spec generation and whitelist execution from selected_execution_plan.yaml.")
@@ -166,8 +166,8 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--mode", choices=["subset", "full"], default="subset")
     p.add_argument("--resume", action="store_true")
     p.add_argument("--output-dir", default="")
-    p.add_argument("--capability-dir", default=str(paths.SCMAS_ROOT / "configs" / "capability"))
-    p.add_argument("--registry", default=str(paths.SCMAS_ROOT / "configs" / "model_registry.yaml"))
+    p.add_argument("--capability-dir", default=str(paths.AOS_ROOT / "configs" / "capability"))
+    p.add_argument("--registry", default=str(paths.AOS_ROOT / "configs" / "model_registry.yaml"))
     p.add_argument("--retry-limit", type=int, default=2)
     p.add_argument("--llm-mode", choices=["required", "optional", "off"], default="required")
     p.add_argument("--llm-model", default="")

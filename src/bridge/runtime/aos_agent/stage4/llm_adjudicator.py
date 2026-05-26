@@ -184,7 +184,7 @@ def adjudicate_low_consistency_cells(
     effective_llm_model = llm_model or default_llm_model(DEFAULT_LLM_MODEL)
     trace_dir = ensure_dir(Path(output_dir) / "llm_cell_adjudication")
     observe = {
-        "schema_version": "scmas.stage4.llm_cell_adjudication.v1",
+        "schema_version": "aos.stage4.llm_cell_adjudication.v1",
         "method": LLM_ADJUDICATION_METHOD,
         "query_labels_available_to_llm": False,
         "metrics_with_query_truth_available_to_llm": False,
@@ -208,7 +208,7 @@ def adjudicate_low_consistency_cells(
     decisions: dict[str, dict[str, Any]] = {}
     errors: list[str] = []
     system_prompt = (
-        "You are the scMAS low-consistency cell-type adjudicator. Choose shared coarse cell labels using only "
+        "You are the AutOmicScience low-consistency cell-type adjudicator. Choose shared coarse cell labels using only "
         "model predictions, confidence bins, vote counts, and label-free consensus/reference outputs. "
         "Never request or infer hidden query truth labels. Return only JSON."
     )

@@ -19,8 +19,8 @@ from aos_agent.llm_config import build_openai_client, default_llm_model
 from aos_agent.stage2.selector import run_cross_species_plan
 
 
-DEFAULT_CAPABILITY_DIR = paths.SCMAS_ROOT / "configs" / "capability"
-DEFAULT_REGISTRY_PATH = paths.SCMAS_ROOT / "configs" / "model_registry.yaml"
+DEFAULT_CAPABILITY_DIR = paths.AOS_ROOT / "configs" / "capability"
+DEFAULT_REGISTRY_PATH = paths.AOS_ROOT / "configs" / "model_registry.yaml"
 DEFAULT_STAGE3_ROOT = paths.RUNS_DIR / "stage3_adapter_execution"
 
 SEAAD_140_CONTRACT = "seaad_140_npz"
@@ -38,7 +38,7 @@ ALLOWED_ACTIONS = {
     "skip_with_reason",
 }
 DEFAULT_LLM_MODEL = default_llm_model()
-DEFAULT_ENV_PATH = paths.SCMAS_ROOT / ".env"
+DEFAULT_ENV_PATH = paths.AOS_ROOT / ".env"
 
 
 @dataclass
@@ -332,7 +332,7 @@ def _base_spec(
 ) -> dict[str, Any]:
     model_run_dir = output_dir / "model_runs" / model_id
     return {
-        "schema_version": "scmas.adapter_spec.v1",
+        "schema_version": "aos.adapter_spec.v1",
         "react_policy": "deterministic_react_v1",
         "mode": mode,
         "dataset_id": plan["dataset_id"],
@@ -424,7 +424,7 @@ def _raw_label_transfer_spec(
             "selected_shared_genes": int(pair.get("shared_genes", 0)),
         },
         {"action": "write_raw_label_transfer_input", "path": str(input_yaml)},
-        {"action": "invoke_raw_embedding_transfer", "executor": "scmas.stage2.selector.run_cross_species_plan"},
+        {"action": "invoke_raw_embedding_transfer", "executor": "aos.stage2.selector.run_cross_species_plan"},
     ]
     spec["thought"] = (
         "Use the stage-2 selected source+model pair and adapt the query by shared genes. "
@@ -568,7 +568,7 @@ def _llm_observe_for_adapter_spec(spec: dict[str, Any], plan: dict[str, Any]) ->
     artifact_status = contract.get("artifact_status", {}) if isinstance(contract, dict) else {}
     wrapper_signature = contract.get("wrapper_signature", {}) if isinstance(contract, dict) else {}
     return {
-        "schema_version": "scmas.stage3.llm_observe.v1",
+        "schema_version": "aos.stage3.llm_observe.v1",
         "dataset_id": spec.get("dataset_id"),
         "query_path": spec.get("query_path"),
         "query_adapter": spec.get("query_adapter"),
@@ -604,7 +604,7 @@ def _llm_observe_for_adapter_spec(spec: dict[str, Any], plan: dict[str, Any]) ->
 
 def _render_adapter_prompt(observe: dict[str, Any], previous: dict[str, Any] | None = None) -> tuple[str, str]:
     system_prompt = (
-        "You are the scMAS stage-3 ReAct adapter agent. Produce one executable AdapterSpec JSON object. "
+        "You are the AutOmicScience stage-3 ReAct adapter agent. Produce one executable AdapterSpec JSON object. "
         "You may only choose from allowed_actions. You must not write code, shell commands, or arbitrary executable payloads. "
         "The deterministic reviewer will reject unknown actions, changed immutable fields, missing paths, or unsafe keys."
     )
@@ -622,7 +622,7 @@ def _render_adapter_prompt(observe: dict[str, Any], previous: dict[str, Any] | N
     ]
     payload: dict[str, Any] = {
         "instructions": instructions,
-        "response_contract": "A complete scMAS AdapterSpec JSON object.",
+        "response_contract": "A complete AutOmicScience AdapterSpec JSON object.",
         "observe": observe,
     }
     if previous:

@@ -11,13 +11,13 @@ def _path_from_env(name: str, default: str | Path) -> Path:
 RUNTIME_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = RUNTIME_ROOT
 
-SCMAS_ROOT = _path_from_env("AOS_MAS_ROOT", REPO_ROOT)
+AOS_ROOT = _path_from_env("AOS_MAS_ROOT", REPO_ROOT)
 LEGACY_ROOT = _path_from_env(
     "AOS_MAS_FOUNDATION_MAS_ROOT",
-    SCMAS_ROOT / "vendor" / "foundation_model_based_mas",
+    AOS_ROOT / "vendor" / "foundation_model_based_mas",
 )
 LEGACY_DATA_ROOT = LEGACY_ROOT / "data"
-SEA_AD_MJM_ROOT = _path_from_env("AOS_MAS_SEAAD_MJM_ROOT", SCMAS_ROOT / "external" / "SEA-AD" / "MJM")
+SEA_AD_MJM_ROOT = _path_from_env("AOS_MAS_SEAAD_MJM_ROOT", AOS_ROOT / "external" / "SEA-AD" / "MJM")
 
 SC_DESIGN3_ROOT = LEGACY_ROOT / "FM_eval_hub" / "scDesign3-main"
 SC_DESIGN3_PIPELINE = SC_DESIGN3_ROOT / "pipeline"
@@ -28,23 +28,23 @@ EXISTING_SEAAD_SYNTHETIC_ROOT = (
 
 SEAAD_MERFISH_H5AD = _path_from_env(
     "AOS_MAS_SEAAD_MERFISH_H5AD",
-    SCMAS_ROOT / "data" / "raw" / "seaad_merfish.h5ad",
+    AOS_ROOT / "data" / "raw" / "seaad_merfish.h5ad",
 )
 SEAAD_DONOR_H5AD_DIR = _path_from_env(
     "AOS_MAS_SEAAD_DONOR_H5AD_DIR",
-    SCMAS_ROOT / "data" / "raw" / "seaad_donor_h5ad",
+    AOS_ROOT / "data" / "raw" / "seaad_donor_h5ad",
 )
 SEAAD_MERFISH_GENES_JSON = SEA_AD_MJM_ROOT / "data" / "merfish_gene_names.json"
 SEAAD_GLOBAL_NPZ = SEA_AD_MJM_ROOT / "data" / "global_data.npz"
 
-DATA_DIR = SCMAS_ROOT / "data"
+DATA_DIR = AOS_ROOT / "data"
 REFERENCE_DIR = DATA_DIR / "reference"
 TEST_DIR = DATA_DIR / "test"
 PREPARED_SOURCE_DIR = DATA_DIR / "prepared_sources"
 SYNTHETIC_DIR = DATA_DIR / "synthetic"
-RUNS_DIR = SCMAS_ROOT / "runs"
+RUNS_DIR = AOS_ROOT / "runs"
 
-REFERENCE_H5AD = REFERENCE_DIR / "scmas_human_mouse_reference.h5ad"
+REFERENCE_H5AD = REFERENCE_DIR / "aos_human_mouse_reference.h5ad"
 SEAAD_TEST_H5AD = TEST_DIR / "seaad_merfish_140gene_test.h5ad"
 SEAAD_LABEL_MAPS_JSON = REFERENCE_DIR / "seaad_label_maps.json"
 SEAAD_DONOR_SPLIT_JSON = REFERENCE_DIR / "seaad_merfish_donor_split.json"
@@ -62,7 +62,7 @@ SPINAL_DIR = LEGACY_DATA_ROOT / "reference" / "spinal"
 
 FOUNDATION_CHECKPOINT_ROOT = _path_from_env(
     "AOS_MAS_FOUNDATION_CHECKPOINT_ROOT",
-    SCMAS_ROOT / "checkpoints" / "foundation_models",
+    AOS_ROOT / "checkpoints" / "foundation_models",
 )
 GENEFORMER_CHECKPOINT_DIR = _path_from_env(
     "AOS_MAS_GENEFORMER_DIR",

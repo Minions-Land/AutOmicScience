@@ -9,14 +9,14 @@ from aos_agent.io import read_yaml
 from aos_agent import paths
 
 
-DEFAULT_REGISTRY = paths.SCMAS_ROOT / "configs" / "model_registry.yaml"
+DEFAULT_REGISTRY = paths.AOS_ROOT / "configs" / "model_registry.yaml"
 
 _PATH_KEYS = {"checkpoint", "checkpoint_dir", "entrypoint", "runtime_conda_prefix"}
 
 
 def _default_env_paths() -> dict[str, Path]:
     return {
-        "AOS_MAS_ROOT": paths.SCMAS_ROOT,
+        "AOS_MAS_ROOT": paths.AOS_ROOT,
         "AOS_MAS_FOUNDATION_MAS_ROOT": paths.LEGACY_ROOT,
         "AOS_MAS_FOUNDATION_CHECKPOINT_ROOT": paths.FOUNDATION_CHECKPOINT_ROOT,
         "AOS_MAS_GENEFORMER_DIR": paths.GENEFORMER_CHECKPOINT_DIR,
@@ -36,7 +36,7 @@ def expand_path_text(value: str | Path) -> str:
     return os.path.expandvars(os.path.expanduser(text))
 
 
-def resolve_portable_path(value: str | Path, *, base_dir: str | Path = paths.SCMAS_ROOT) -> Path:
+def resolve_portable_path(value: str | Path, *, base_dir: str | Path = paths.AOS_ROOT) -> Path:
     path = Path(expand_path_text(value))
     if not path.is_absolute():
         path = Path(base_dir) / path
@@ -58,7 +58,7 @@ def load_model_registry(path: str | Path = DEFAULT_REGISTRY) -> list[ModelSpec]:
         raw = dict(item)
         for key in _PATH_KEYS:
             if raw.get(key):
-                raw[key] = str(resolve_portable_path(raw[key], base_dir=paths.SCMAS_ROOT))
+                raw[key] = str(resolve_portable_path(raw[key], base_dir=paths.AOS_ROOT))
         out.append(
             ModelSpec(
                 model_id=raw["model_id"],

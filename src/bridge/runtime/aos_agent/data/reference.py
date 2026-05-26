@@ -642,7 +642,7 @@ def build_reference(
     merged = ad.concat(components, join="outer", fill_value=0, merge="same", label="reference_component")
     merged.X = sparse.csr_matrix(merged.X)
     merged.var["feature_symbol_upper"] = merged.var_names.astype(str)
-    merged.uns["scmas_reference"] = {
+    merged.uns["aos_reference"] = {
         "seed": seed,
         "test_donors": split["test_donors"],
         "reference_donors": split["reference_donors"],

@@ -148,12 +148,12 @@ def _write_npz_and_h5ad(
         spatial = np.vstack([spatial, np.zeros((dummy_n, 2), dtype=np.float32)])
         confidence = np.concatenate([confidence, np.zeros(dummy_n, dtype=np.float32)])
         cps = np.concatenate([cps, np.zeros(dummy_n, dtype=np.float32)])
-        dummy_obs = pd.DataFrame(index=[f"__scmas_dummy_{idx}" for idx in range(dummy_n)])
+        dummy_obs = pd.DataFrame(index=[f"__aos_dummy_{idx}" for idx in range(dummy_n)])
         for col in obs.columns:
             dummy_obs[col] = obs[col].iloc[0] if len(obs) else ""
-        dummy_obs["is_scmas_dummy"] = True
+        dummy_obs["is_aos_dummy"] = True
         obs = obs.copy()
-        obs["is_scmas_dummy"] = False
+        obs["is_aos_dummy"] = False
         obs = pd.concat([obs, dummy_obs], axis=0)
         is_dummy = np.concatenate([is_dummy, np.ones(dummy_n, dtype=bool)])
     output_dir = ensure_dir(output_dir)
@@ -180,7 +180,7 @@ def _write_npz_and_h5ad(
         spatial=spatial,
         cps=cps,
         meta=meta,
-        is_scmas_dummy=is_dummy,
+        is_aos_dummy=is_dummy,
     )
 
     h5ad_obs = obs.copy()

@@ -76,7 +76,7 @@ def run_sklearn_model(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     data = _load_npz(dataset["npz_path"])
     x = np.log1p(np.asarray(data["X"], dtype=np.float32))
-    eval_mask = ~np.asarray(data.get("is_scmas_dummy", np.zeros(x.shape[0], dtype=bool)), dtype=bool)
+    eval_mask = ~np.asarray(data.get("is_aos_dummy", np.zeros(x.shape[0], dtype=bool)), dtype=bool)
     model_dir = Path(model.raw["checkpoint_dir"])
     prediction_rows: list[dict[str, Any]] = []
     metric_rows: list[dict[str, Any]] = []
@@ -120,7 +120,7 @@ def run_sklearn_model_external(
         return run_sklearn_model(model, dataset, output_dir)
     worker_dir = ensure_dir(output_dir / model.model_id / dataset["dataset_id"] / "_external_worker")
     env = os.environ.copy()
-    env["PYTHONPATH"] = f"{paths.SCMAS_ROOT / 'src'}:{env.get('PYTHONPATH', '')}"
+    env["PYTHONPATH"] = f"{paths.AOS_ROOT / 'src'}:{env.get('PYTHONPATH', '')}"
     cmd = [
         "conda",
         "run",
@@ -130,7 +130,7 @@ def run_sklearn_model_external(
         f"PYTHONPATH={env['PYTHONPATH']}",
         "python",
         "-m",
-        "scmas.eval.sklearn_worker",
+        "aos_agent.eval.sklearn_worker",
         "--model-id",
         model.model_id,
         "--checkpoint-dir",
@@ -142,7 +142,7 @@ def run_sklearn_model_external(
         "--output-dir",
         str(worker_dir),
     ]
-    subprocess.run(cmd, check=True, cwd=str(paths.SCMAS_ROOT), env=env)
+    subprocess.run(cmd, check=True, cwd=str(paths.AOS_ROOT), env=env)
     pred_path = worker_dir / "predictions.csv"
     metrics_path = worker_dir / "metrics.csv"
     predictions = pd.read_csv(pred_path).to_dict("records") if pred_path.exists() else []
@@ -168,7 +168,7 @@ def run_spatial_gnn_model(
 
     data = _load_npz(dataset["npz_path"])
     x_all = np.asarray(data["X"], dtype=np.float32)
-    eval_mask = ~np.asarray(data.get("is_scmas_dummy", np.zeros(x_all.shape[0], dtype=bool)), dtype=bool)
+    eval_mask = ~np.asarray(data.get("is_aos_dummy", np.zeros(x_all.shape[0], dtype=bool)), dtype=bool)
     x = x_all[eval_mask]
     spatial = np.asarray(data.get("spatial", np.zeros((x_all.shape[0], 2), dtype=np.float32)), dtype=np.float32)[eval_mask]
     if spatial.ndim != 2 or spatial.shape[1] < 2:
@@ -366,7 +366,7 @@ def _variant_score_rows(metrics_df: pd.DataFrame) -> pd.DataFrame:
 def run_evaluation(
     *,
     output_dir: str | Path,
-    registry_path: str | Path = paths.SCMAS_ROOT / "configs" / "model_registry.yaml",
+    registry_path: str | Path = paths.AOS_ROOT / "configs" / "model_registry.yaml",
     dataset_manifest_path: str | Path | None = None,
     include_new_synthetic: bool = True,
     models: list[str] | None = None,
