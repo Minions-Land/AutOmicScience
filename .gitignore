@@ -66,3 +66,4 @@ src/bridge/runtime/vendor/foundation_model_based_mas/tools_layer/mcp_tools/UCE-m
 cool_demo_plot.png
 demo_cool_plot.ipynb
 /runs/
+/hf-assets/

@@ -15,9 +15,23 @@ const uploads = [
   {
     repo: `${owner}/AutOmicScience-FoundationModels`,
     type: 'model',
+    source: 'hf-assets/foundation-models',
+    target: '.',
+    message: 'Upload AutOmicScience foundation model repository metadata',
+  },
+  {
+    repo: `${owner}/AutOmicScience-FoundationModels`,
+    type: 'model',
     source: 'src/bridge/runtime/checkpoints/foundation_models',
     target: '.',
     message: 'Upload AutOmicScience foundation model assets',
+  },
+  {
+    repo: `${owner}/AutOmicScience-Reference`,
+    type: 'dataset',
+    source: 'hf-assets/reference',
+    target: '.',
+    message: 'Upload AutOmicScience reference repository metadata',
   },
   {
     repo: `${owner}/AutOmicScience-Reference`,
@@ -66,6 +80,27 @@ async function exists(localPath) {
   }
 }
 
+function withToken(args) {
+  if (!token) {
+    return args;
+  }
+  return [...args, '--token', token];
+}
+
+run(withToken(['repos', 'create', `${owner}/AutOmicScience-FoundationModels`, '--type', 'model', '--exist-ok']));
+run(withToken(['repos', 'create', `${owner}/AutOmicScience-Reference`, '--type', 'dataset', '--exist-ok']));
+
+const prepare = spawnSync(process.execPath, ['scripts/prepare-hf-assets.mjs'], {
+  cwd: repoRoot,
+  stdio: 'inherit',
+});
+if (prepare.error) {
+  throw prepare.error;
+}
+if (prepare.status !== 0) {
+  process.exit(prepare.status ?? 1);
+}
+
 for (const upload of uploads) {
   const source = path.join(repoRoot, upload.source);
   if (!(await exists(source))) {
@@ -83,8 +118,5 @@ for (const upload of uploads) {
     '--commit-message',
     upload.message,
   ];
-  if (token) {
-    args.push('--token', token);
-  }
-  run(args);
+  run(withToken(args));
 }

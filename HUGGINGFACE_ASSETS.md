@@ -57,6 +57,12 @@ Preview commands without uploading:
 node scripts/upload-hf-assets.mjs --dry-run
 ```
 
+Generate repository cards and file manifests without uploading:
+
+```bash
+node scripts/prepare-hf-assets.mjs
+```
+
 If `hf` is installed outside your shell `PATH`, point the script at it:
 
 ```bash
