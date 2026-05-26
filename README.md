@@ -223,6 +223,14 @@ hf download PoorOtterBob/AutOmicScience-Reference \
   --local-dir src/bridge/runtime
 ```
 
+On China-based servers where direct Hugging Face access is unreliable, set:
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com
+```
+
+Aliyun PyPI mirrors are useful for Python packages, but `mirrors.aliyun.com/huggingface` is not a Hugging Face Hub API endpoint for `hf download` or `hf upload-large-folder`.
+
 Publishing from the prepared server copy:
 
 ```bash

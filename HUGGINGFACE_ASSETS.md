@@ -71,6 +71,14 @@ If `hf` is installed outside your shell `PATH`, point the script at it:
 AOS_HF_CLI=/root/anaconda3/bin/hf node scripts/upload-hf-assets.mjs
 ```
 
+For China-based servers where direct Hugging Face access is unreliable, use:
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com
+```
+
+Aliyun PyPI mirrors can speed up Python package installs, but `mirrors.aliyun.com/huggingface` is not a compatible Hugging Face Hub API endpoint for the `hf` CLI.
+
 ## Download
 
 ```bash
