@@ -10,8 +10,7 @@ The core code is intentionally lightweight. Large foundation-model weights and b
 
 ## Repositories
 
-- Code: https://github.com/PoorOtterBob/AutOmicScience
-- Code mirror: https://github.com/Minions-Land/AutOmicScience
+- Code: https://github.com/Minions-Land/AutOmicScience
 - Optional assets: https://huggingface.co/PoorOtterBob
 
 Recommended Hugging Face layout:
@@ -41,7 +40,7 @@ Not included by default:
 ## Quick Start
 
 ```bash
-git clone https://github.com/PoorOtterBob/AutOmicScience.git
+git clone https://github.com/Minions-Land/AutOmicScience.git
 cd AutOmicScience
 npm install
 npm run typecheck
