@@ -57,6 +57,12 @@ Preview commands without uploading:
 node scripts/upload-hf-assets.mjs --dry-run
 ```
 
+If `hf` is installed outside your shell `PATH`, point the script at it:
+
+```bash
+AOS_HF_CLI=/root/anaconda3/bin/hf node scripts/upload-hf-assets.mjs
+```
+
 ## Download
 
 ```bash

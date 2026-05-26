@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const owner = process.env.AOS_HF_OWNER || 'PoorOtterBob';
+const hfCli = process.env.AOS_HF_CLI || 'hf';
 const token = process.env.HF_TOKEN || process.env.HUGGINGFACE_HUB_TOKEN || '';
 const dryRun = process.argv.includes('--dry-run');
 
@@ -42,7 +43,7 @@ const uploads = [
 ];
 
 function run(args) {
-  const command = ['hf', ...args];
+  const command = [hfCli, ...args];
   console.log(command.join(' '));
   if (dryRun) {
     return;
