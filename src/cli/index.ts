@@ -20,9 +20,22 @@ import { DevServer } from '../ui/Server.js';
 import { LocalStore } from '../store/LocalStore.js';
 import { SetupWizard } from './SetupWizard.js';
 import { AOS_SYSTEM_PROMPT } from '../agent/prompts/AOSSystemPrompt.js';
+import { formatIssueReportSummary, IssueReporter } from '../issues/index.js';
+import type { IssueReportInput } from '../issues/index.js';
 
 dotenvConfig();
 dotenvConfig({ path: path.join(os.homedir(), '.aos', '.env'), override: false });
+
+const issueReporter = new IssueReporter();
+
+async function reportIssueBeforeExit(input: IssueReportInput): Promise<void> {
+  try {
+    if (!issueReporter.isEnabled()) return;
+    await issueReporter.report({ ...input, autoSubmit: false });
+  } catch {
+    // Error reporting must never change CLI exit behavior.
+  }
+}
 
 const program = new Command();
 program
@@ -51,6 +64,11 @@ program
       model: opts.model ?? defaultModel(),
       toolset,
       systemPrompt: AOS_SYSTEM_PROMPT,
+      onError: (error) => issueReporter.reportInBackground({
+        context: { command: 'cli', cwd: process.cwd() },
+        error,
+        source: 'cli-agent',
+      }),
     });
     if (opts.plugin?.length) {
       const loader = new PluginLoader([
@@ -85,6 +103,11 @@ program
       projectInstructions: { cwd: process.cwd() },
       systemPrompt: AOS_SYSTEM_PROMPT,
       maxIterations: parseInt(opts.maxIterations, 10) || 8,
+      onError: (error) => issueReporter.reportInBackground({
+        context: { command: 'run', cwd: process.cwd(), inputLength: input.length },
+        error,
+        source: 'cli-agent',
+      }),
     });
     if (opts.json) await runStructuredAgent(agent, input);
     else console.log(await agent.runToText(input));
@@ -106,6 +129,11 @@ program
       toolset: createDefaultToolSet({ rootDir: process.cwd(), permissionManager, taskManager }),
       projectInstructions: { cwd: process.cwd() },
       systemPrompt: AOS_SYSTEM_PROMPT,
+      onError: (error) => issueReporter.reportInBackground({
+        context: { command: 'stdio', cwd: process.cwd() },
+        error,
+        source: 'cli-agent',
+      }),
     });
     await startStructuredIO(agent);
     await permissionStore.persistManager(permissionManager);
@@ -203,6 +231,34 @@ store
     }
   });
 
+const issues = program
+  .command('issues')
+  .description('Inspect locally saved AutOmicScience issue records.');
+
+issues
+  .command('list')
+  .description('List local gitissue records saved by the background error hook.')
+  .option('-n, --limit <n>', 'Maximum records to show', '30')
+  .action(async (opts) => {
+    const records = await issueReporter.listLocalIssues(parseInt(opts.limit, 10) || 30);
+    if (records.length === 0) {
+      console.log('No local gitissues found.');
+      return;
+    }
+    for (const record of records) {
+      console.log(`${record.createdAt} ${record.path}`);
+      console.log(`  ${record.title}`);
+    }
+  });
+
+issues
+  .command('submit <path>')
+  .description('Submit a saved local gitissue to GitHub with gh issue create.')
+  .action(async (issuePath: string) => {
+    const result = await issueReporter.submitLocalIssue(path.resolve(issuePath));
+    console.log(formatIssueReportSummary(result));
+  });
+
 program
   .command('evolve <config>')
   .description('Run evolutionary optimization from a config JSON file.')
@@ -250,11 +306,28 @@ for (const { name, summary } of ANNOTATE_SUBCOMMANDS) {
       const result = await runPython(name, args);
       if (result.stdout) process.stdout.write(result.stdout);
       if (result.stderr) process.stderr.write(result.stderr);
+      if (result.exitCode !== 0) {
+        await reportIssueBeforeExit({
+          context: {
+            args,
+            command: `annotate ${name}`,
+            exitCode: result.exitCode,
+            stderr: result.stderr.slice(0, 6000),
+          },
+          error: new Error(`AutOmicScience annotate ${name} failed with exit code ${result.exitCode}`),
+          source: 'cli-annotate',
+        });
+      }
       process.exit(result.exitCode);
     });
 }
 
-program.parseAsync(process.argv).catch((err) => {
+program.parseAsync(process.argv).catch(async (err) => {
+  await reportIssueBeforeExit({
+    context: { argv: process.argv.slice(2), cwd: process.cwd() },
+    error: err,
+    source: 'cli',
+  });
   console.error(err);
   process.exit(1);
 });

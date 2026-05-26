@@ -15,6 +15,7 @@ import { FileSessionStore } from '../session/index.js';
 import { createDefaultToolSet } from '../toolset/BuiltinToolSets.js';
 import { FileTaskManager } from '../task/index.js';
 import type { AgentEvent } from '../types.js';
+import { installIssueReportingHook, IssueReporter } from '../issues/index.js';
 import { listKnownModels } from '../utils/modelDiscovery.js';
 import { AOS_SYSTEM_PROMPT } from '../agent/prompts/AOSSystemPrompt.js';
 import { APP_HTML } from './AppHtml.js';
@@ -37,6 +38,7 @@ export interface DevServerOptions {
   enableAOSCompat?: boolean;
   aosCompatDataDir?: string;
   aosServiceIdHash?: string;
+  issueDir?: string;
 }
 
 export class DevServer implements UIServer {
@@ -50,6 +52,7 @@ export class DevServer implements UIServer {
   private readonly pluginRegistry: AOSPluginRegistry;
   private readonly commands: CommandRegistry;
   private readonly hooks: HookManager;
+  private readonly issueReporter: IssueReporter;
   private readonly agent: Agent;
   private readonly aosCompat: AOSCompat;
   private readonly modelCandidates: string[];
@@ -69,6 +72,11 @@ export class DevServer implements UIServer {
     this.pluginRegistry = new AOSPluginRegistry(opts.pluginsFile ?? path.join(os.homedir(), '.aos', 'plugins.json'));
     this.commands = new CommandRegistry();
     this.hooks = new HookManager();
+    this.issueReporter = new IssueReporter({ cwd: this.rootDir, issueDir: opts.issueDir });
+    installIssueReportingHook(this.hooks, this.issueReporter, {
+      source: 'ui-agent',
+      getContext: () => ({ rootDir: this.rootDir, service: 'DevServer' }),
+    });
     this.modelCandidates = unique([
       defaultModel(),
       'normal',
@@ -115,6 +123,15 @@ export class DevServer implements UIServer {
     return new Promise((resolve, reject) => {
       this.server = createServer((req, res) => {
         this.handle(req, res).catch((err) => {
+          this.issueReporter.reportInBackground({
+            context: {
+              method: req.method,
+              url: req.url,
+              rootDir: this.rootDir,
+            },
+            error: err,
+            source: 'ui-server',
+          });
           this.sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
         });
       });
@@ -154,6 +171,9 @@ export class DevServer implements UIServer {
     if (url.pathname === '/api/permissions/mode' && req.method === 'POST') return this.setPermissionMode(req, res);
     if (url.pathname === '/api/permissions/rules' && req.method === 'POST') return this.addPermissionRule(req, res);
     if (url.pathname === '/api/plugins/load' && req.method === 'POST') return this.loadPlugin(req, res);
+    if (url.pathname === '/api/issues' && req.method === 'GET') return this.getIssues(res);
+    if (url.pathname === '/api/issues/report' && req.method === 'POST') return this.reportIssue(req, res);
+    if (url.pathname === '/api/issues/submit' && req.method === 'POST') return this.submitIssue(req, res);
     if (url.pathname === '/api/tasks' && req.method === 'GET') return this.getTasks(res);
     if (url.pathname === '/api/sessions' && req.method === 'GET') return this.getSessions(res);
     if (url.pathname === '/api/session/save' && req.method === 'POST') return this.saveSession(req, res);
@@ -259,6 +279,43 @@ export class DevServer implements UIServer {
       });
     }
     return plugin;
+  }
+
+  private async getIssues(res: ServerResponse): Promise<void> {
+    this.sendJson(res, 200, { issues: await this.issueReporter.listLocalIssues() });
+  }
+
+  private async reportIssue(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await readJson<{
+      context?: Record<string, unknown>;
+      error?: unknown;
+      message?: string;
+      source?: string;
+      stack?: string;
+      title?: string;
+    }>(req);
+    const error = body.error ?? {
+      message: body.message ?? 'Frontend error',
+      name: 'FrontendError',
+      stack: body.stack,
+    };
+    this.issueReporter.reportInBackground({
+      context: {
+        ...(body.context ?? {}),
+        rootDir: this.rootDir,
+      },
+      error,
+      source: body.source ?? 'frontend',
+      title: body.title,
+    });
+    this.sendJson(res, 202, { ok: true });
+  }
+
+  private async submitIssue(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const body = await readJson<{ path?: string }>(req);
+    if (!body.path) return this.sendJson(res, 400, { error: 'path_required' });
+    const result = await this.issueReporter.submitLocalIssue(body.path);
+    this.sendJson(res, 200, result);
   }
 
   private async getTasks(res: ServerResponse): Promise<void> {
@@ -435,6 +492,41 @@ function buildAOSBootstrapScript(
   const current = JSON.stringify(url.toString());
   return `<script>
 (() => {
+  const reportIssue = (error, source, extra) => {
+    try {
+      const payload = JSON.stringify({
+        source: source || 'aos-frontend',
+        message: error && error.message ? error.message : String(error || 'Frontend error'),
+        stack: error && error.stack ? error.stack : undefined,
+        context: Object.assign({
+          href: location.href,
+          userAgent: navigator.userAgent
+        }, extra || {})
+      });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/issues/report', new Blob([payload], { type: 'application/json' }));
+        return;
+      }
+      fetch('/api/issues/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true
+      }).catch(() => {});
+    } catch {
+      // Issue reporting must never affect the AutOmicScience UI.
+    }
+  };
+  window.addEventListener('error', (event) => {
+    reportIssue(event.error || event.message, 'aos-frontend-window-error', {
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno
+    });
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    reportIssue(event.reason, 'aos-frontend-unhandled-rejection');
+  });
   const ready = ${payload};
   const remoteApiOrigin = 'https://aos.local';
   const rewriteApiUrl = (input) => {

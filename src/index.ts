@@ -15,6 +15,7 @@ export * from './commands/index.js';
 export * from './permissions/index.js';
 export * from './plugin/index.js';
 export * from './hooks/index.js';
+export * from './issues/index.js';
 export * from './project/index.js';
 export * from './factory/index.js';
 export * from './bridge/index.js';

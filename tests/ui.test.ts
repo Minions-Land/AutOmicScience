@@ -31,6 +31,7 @@ describe('DevServer UI', () => {
       permissionsFile: path.join(root, 'permissions.json'),
       tasksFile: path.join(root, 'tasks.json'),
       pluginsFile: path.join(root, 'plugins.json'),
+      issueDir: path.join(root, 'gitissues'),
     });
     servers.push(server);
     const port = 38111 + Math.floor(Math.random() * 1000);
@@ -59,6 +60,8 @@ describe('DevServer UI', () => {
     expect(aosHtml).toContain("searchParams.set('service'");
     expect(aosHtml).toContain("searchParams.set('nats'");
     expect(aosHtml).toContain('location.replace');
+    expect(aosHtml).toContain('/api/issues/report');
+    expect(aosHtml).toContain('Issue reporting must never affect the AutOmicScience UI');
 
     const mainScript = aosHtml.match(/src="([^"]+index-[^"]+\.js(?:\?[^"]*)?)"/)?.[1];
     expect(mainScript).toBeTruthy();
@@ -129,6 +132,7 @@ describe('DevServer UI', () => {
       tasksFile: path.join(root, 'tasks.json'),
       pluginsFile: path.join(root, 'plugins.json'),
       aosCompatDataDir: path.join(root, 'aos-compat'),
+      issueDir: path.join(root, 'gitissues'),
     });
     servers.push(server);
     const port = 39211 + Math.floor(Math.random() * 1000);

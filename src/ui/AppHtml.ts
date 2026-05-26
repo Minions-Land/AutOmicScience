@@ -156,6 +156,42 @@ pre { white-space:pre-wrap; word-break:break-word; margin:0; font-size:12px; lin
 let state = null;
 let chatTranscript = [];
 let chatBusy = false;
+function reportFrontendIssue(error, source, extra) {
+  try {
+    const payload = JSON.stringify({
+      source: source || 'frontend',
+      message: error && error.message ? error.message : String(error || 'Frontend error'),
+      stack: error && error.stack ? error.stack : undefined,
+      context: Object.assign({
+        href: location.href,
+        userAgent: navigator.userAgent
+      }, extra || {})
+    });
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon('/api/issues/report', blob);
+      return;
+    }
+    fetch('/api/issues/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true
+    }).catch(() => {});
+  } catch {
+    // Error reporting must never affect the console itself.
+  }
+}
+window.addEventListener('error', (event) => {
+  reportFrontendIssue(event.error || event.message, 'frontend-window-error', {
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno
+  });
+});
+window.addEventListener('unhandledrejection', (event) => {
+  reportFrontendIssue(event.reason, 'frontend-unhandled-rejection');
+});
 const nav = document.getElementById('nav');
 nav.addEventListener('click', (event) => {
   const btn = event.target.closest('button[data-view]');
@@ -239,6 +275,7 @@ async function sendChat() {
     document.getElementById('chatInput').value = '';
     await refresh();
   } catch (err) {
+    reportFrontendIssue(err, 'frontend-chat', { action: 'sendChat' });
     chatTranscript.pop();
     chatTranscript.push({ role:'error', content: err && err.message ? err.message : String(err) });
     output.innerHTML = renderTranscript();

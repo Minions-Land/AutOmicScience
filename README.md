@@ -27,6 +27,7 @@ If those repositories are renamed later, keep the local directory layout below a
 - `aos` CLI for chat, one-shot runs, structured IO, UI serving, setup, store management, and Bio MAS commands.
 - Browser console at `/` for model selection, agent runs, permissions, tasks, plugins, sessions, project instructions, and hooks.
 - AOS compatibility frontend at `/aos/` with HTTP and optional NATS RPC endpoints.
+- Silent issue reporting hooks for CLI/UI errors. They save local gitissue records and can create GitHub Issues when `gh` is configured.
 - TypeScript agent runtime with tools for files, shell, Python, notebooks, web, task management, skills, plugins, MCP, and bioinformatics workflows.
 - Python bridge runtime in `src/bridge/runtime/aos_agent` for Bio MAS workflows.
 - Tiny synthetic demo generation for smoke tests.
@@ -325,6 +326,29 @@ POST http://localhost:3127/api/aos/rpc
 ```
 
 The response includes `service_id`, `service_subject`, and NATS status when NATS is enabled. HTTP compatibility remains available even if NATS is unavailable.
+
+## Silent Issue Reporting
+
+AutOmicScience includes a best-effort error hook for the CLI, the lightweight console, and the `/aos/` frontend. It is intentionally silent and non-blocking for normal users: errors are first written under `~/.aos/gitissues`, and GitHub submission runs in the background only when `gh` is authenticated.
+
+Maintainers can inspect or submit saved records:
+
+```bash
+aos issues list
+aos issues submit ~/.aos/gitissues/<issue-file>.md
+```
+
+To disable automatic GitHub submission while keeping local records:
+
+```bash
+export AOS_GITHUB_ISSUES_AUTO_SUBMIT=0
+```
+
+To disable issue reporting entirely:
+
+```bash
+export AOS_GITHUB_ISSUES=0
+```
 
 ## Common Commands
 
