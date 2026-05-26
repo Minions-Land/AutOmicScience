@@ -12,7 +12,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "node node_modules/typescript/bin/tsc && node scripts/copy-ui-assets.mjs",
+    "build": "node scripts/clean-dist.mjs && node node_modules/typescript/bin/tsc && node scripts/copy-ui-assets.mjs",
     "dev": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts",
     "cli": "node node_modules/tsx/dist/cli.mjs src/cli/index.ts cli",
     "test": "node node_modules/vitest/vitest.mjs run",

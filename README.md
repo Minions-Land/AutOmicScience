@@ -164,6 +164,8 @@ Tiny demo outputs are engineering checks only. They are not scientific results.
 
 Large assets are optional. AOS should run basic CLI/UI/tests without them. Bio MAS production workflows will report blocked or skipped stages when required assets are missing.
 
+Asset publishing and download details are also documented in `HUGGINGFACE_ASSETS.md`.
+
 Recommended local layout:
 
 ```text
@@ -186,17 +188,24 @@ src/bridge/runtime/data/prepared_sources/
 src/bridge/runtime/external/SEA-AD/MJM/
 ```
 
-Download examples using `huggingface-cli`:
+Download examples using the Hugging Face CLI:
 
 ```bash
 pip install -U huggingface_hub
-huggingface-cli download PoorOtterBob/AutOmicScience-FoundationModels \
+hf download PoorOtterBob/AutOmicScience-FoundationModels \
   --repo-type model \
   --local-dir src/bridge/runtime/checkpoints/foundation_models
 
-huggingface-cli download PoorOtterBob/AutOmicScience-Reference \
+hf download PoorOtterBob/AutOmicScience-Reference \
   --repo-type dataset \
-  --local-dir src/bridge/runtime/data
+  --local-dir src/bridge/runtime
+```
+
+Publishing from the prepared server copy:
+
+```bash
+hf auth login
+node scripts/upload-hf-assets.mjs
 ```
 
 Equivalent Python download:
@@ -212,7 +221,7 @@ snapshot_download(
 snapshot_download(
     repo_id="PoorOtterBob/AutOmicScience-Reference",
     repo_type="dataset",
-    local_dir="src/bridge/runtime/data",
+    local_dir="src/bridge/runtime",
 )
 ```
 
