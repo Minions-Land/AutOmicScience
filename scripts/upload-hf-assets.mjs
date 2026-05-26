@@ -8,7 +8,6 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const owner = process.env.AOS_HF_OWNER || 'PoorOtterBob';
 const hfCli = process.env.AOS_HF_CLI || 'hf';
-const token = process.env.HF_TOKEN || process.env.HUGGINGFACE_HUB_TOKEN || '';
 const dryRun = process.argv.includes('--dry-run');
 
 const uploads = [
@@ -75,15 +74,8 @@ async function exists(localPath) {
   }
 }
 
-function withToken(args) {
-  if (!token) {
-    return args;
-  }
-  return [...args, '--token', token];
-}
-
-run(withToken(['repos', 'create', `${owner}/AutOmicScience-FoundationModels`, '--type', 'model', '--exist-ok']));
-run(withToken(['repos', 'create', `${owner}/AutOmicScience-Reference`, '--type', 'dataset', '--exist-ok']));
+run(['repos', 'create', `${owner}/AutOmicScience-FoundationModels`, '--type', 'model', '--exist-ok']);
+run(['repos', 'create', `${owner}/AutOmicScience-Reference`, '--type', 'dataset', '--exist-ok']);
 
 const prepare = spawnSync(process.execPath, ['scripts/prepare-hf-assets.mjs'], {
   cwd: repoRoot,
@@ -122,5 +114,5 @@ for (const upload of uploads) {
         '--commit-message',
         upload.message,
       ];
-  run(withToken(args));
+  run(args);
 }
